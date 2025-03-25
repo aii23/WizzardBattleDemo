@@ -1,7 +1,8 @@
 import { GameObjects, Scene } from "phaser";
 import { EventBus } from "../EventBus";
+import { TileType, MatchData } from "@/matchmaking.types";
 
-interface MatchData {
+interface MatchMetaData {
     matchId: string;
     opponent: string;
 }
@@ -9,109 +10,199 @@ interface MatchData {
 interface GridTile {
     x: number;
     y: number;
-    sprite: GameObjects.Rectangle;
+    sprite: GameObjects.Image;
 }
 
 export class Game extends Scene {
     private background: GameObjects.Image;
     private opponentText: GameObjects.Text;
-    private matchData: MatchData | null = null;
+    private matchMetaData: MatchMetaData | null = null;
     private playerGrid: GridTile[][] = [];
     private opponentGrid: GridTile[][] = [];
+    private playerContainer: GameObjects.Container;
+    private opponentContainer: GameObjects.Container;
     private readonly GRID_SIZE = 4;
-    private readonly TILE_SIZE = 80;
-    private readonly GRID_SPACING = 10;
+    private readonly TILE_SIZE = 40;
+    private readonly GRID_SPACING = 1;
+    private playerData: MatchData | null = null;
+    private opponentData: MatchData | null = null;
+    private isInitialized: boolean = false;
 
     constructor() {
         super("Game");
     }
 
-    init(data: MatchData) {
-        this.matchData = data;
+    init(data: {
+        metaData: MatchMetaData;
+        playerData: MatchData;
+        opponentData: MatchData;
+    }) {
+        console.log("Game scene init with data:", data);
+        this.matchMetaData = data.metaData;
+        this.playerData = data.playerData;
+        this.opponentData = data.opponentData;
+        this.isInitialized = true;
     }
 
     create() {
+        console.log("Game scene create");
         // Add the same background as MainMenu
         this.background = this.add.image(512, 384, "main_screen");
 
+        // Create containers for grids
+        this.playerContainer = this.add.container(0, 0);
+        this.opponentContainer = this.add.container(0, 0);
+
         // Create opponent text
         this.opponentText = this.add
-            .text(512, 100, "Opponent", {
+            .text(0, -50, "Opponent", {
                 font: "32px Arial",
                 color: "#fff",
             })
             .setOrigin(0.5);
+
+        // Add text to opponent container
+        this.opponentContainer.add(this.opponentText);
 
         // Create player text
-        this.add
-            .text(512, 668, "Player", {
+        const playerText = this.add
+            .text(0, -50, "Player", {
                 font: "32px Arial",
                 color: "#fff",
             })
             .setOrigin(0.5);
 
-        // Create grids
-        this.createGrids();
+        // Add text to player container
+        this.playerContainer.add(playerText);
+
+        // Create grids if data is available
+        if (this.isInitialized && this.playerData && this.opponentData) {
+            console.log("Creating grids with data");
+            this.createGrids();
+        } else {
+            console.log("Waiting for data to create grids");
+        }
 
         this.updateOpponentDisplay();
         EventBus.emit("current-scene-ready", this);
     }
 
     private createGrids() {
-        // Calculate grid positions
-        const opponentGridX =
-            512 - (this.GRID_SIZE * (this.TILE_SIZE + this.GRID_SPACING)) / 2;
-        const opponentGridY = 200;
-        const playerGridX =
-            512 - (this.GRID_SIZE * (this.TILE_SIZE + this.GRID_SPACING)) / 2;
-        const playerGridY = 568;
+        console.log("Creating grids");
+        // Clear existing grids if any
+        this.playerContainer.removeAll();
+        this.opponentContainer.removeAll();
 
-        // Create opponent grid
-        for (let y = 0; y < this.GRID_SIZE; y++) {
-            this.opponentGrid[y] = [];
-            for (let x = 0; x < this.GRID_SIZE; x++) {
-                const tileX =
-                    opponentGridX + x * (this.TILE_SIZE + this.GRID_SPACING);
-                const tileY =
-                    opponentGridY + y * (this.TILE_SIZE + this.GRID_SPACING);
+        // Re-add the text labels
+        this.opponentContainer.add(this.opponentText);
+        const playerText = this.add
+            .text(0, -50, "Player", {
+                font: "32px Arial",
+                color: "#fff",
+            })
+            .setOrigin(0.5);
+        this.playerContainer.add(playerText);
 
-                const tile = this.add.rectangle(
-                    tileX + this.TILE_SIZE / 2,
-                    tileY + this.TILE_SIZE / 2,
-                    this.TILE_SIZE,
-                    this.TILE_SIZE,
-                    0x666666
-                );
+        // Calculate grid positions for horizontal layout
+        const totalWidth =
+            this.GRID_SIZE * (this.TILE_SIZE + this.GRID_SPACING);
+        const spacing = 100; // Space between the two grids
+        const startX = 0;
+        const gridY = 384; // Center vertically
 
-                this.opponentGrid[y][x] = { x, y, sprite: tile };
+        // Helper function to create a grid
+        const createGrid = (
+            playerData: MatchData | null,
+            container: Phaser.GameObjects.Container,
+            grid: any[][]
+        ) => {
+            if (!playerData) {
+                console.log("No data for grid creation");
+                return;
             }
-        }
+            console.log("Creating grid with data:", playerData);
+            for (let y = 0; y < this.GRID_SIZE; y++) {
+                grid[y] = [];
+                for (let x = 0; x < this.GRID_SIZE; x++) {
+                    const tileX = x * (this.TILE_SIZE + this.GRID_SPACING);
+                    const tileY = y * (this.TILE_SIZE + this.GRID_SPACING);
 
-        // Create player grid
-        for (let y = 0; y < this.GRID_SIZE; y++) {
-            this.playerGrid[y] = [];
-            for (let x = 0; x < this.GRID_SIZE; x++) {
-                const tileX =
-                    playerGridX + x * (this.TILE_SIZE + this.GRID_SPACING);
-                const tileY =
-                    playerGridY + y * (this.TILE_SIZE + this.GRID_SPACING);
+                    let tile;
+                    const tileType = playerData.mapStructure.matrix[y][x];
+                    let tileImage;
+                    switch (tileType) {
+                        case TileType.VALLEY:
+                            tileImage = "valley";
+                            break;
+                        case TileType.ROCK:
+                            tileImage = "rock";
+                            break;
+                        case TileType.WATER:
+                            tileImage = "water";
+                            break;
+                    }
+                    tile = this.add
+                        .image(
+                            tileX + this.TILE_SIZE / 2,
+                            tileY + this.TILE_SIZE / 2,
+                            tileImage
+                        )
+                        .setDisplaySize(this.TILE_SIZE, this.TILE_SIZE);
 
-                const tile = this.add.rectangle(
-                    tileX + this.TILE_SIZE / 2,
-                    tileY + this.TILE_SIZE / 2,
-                    this.TILE_SIZE,
-                    this.TILE_SIZE,
-                    0x666666
-                );
-
-                this.playerGrid[y][x] = { x, y, sprite: tile };
+                    grid[y][x] = { x, y, sprite: tile };
+                    container.add(tile);
+                }
             }
+        };
+
+        // Create opponent grid (left side)
+        createGrid(
+            this.opponentData,
+            this.opponentContainer,
+            this.opponentGrid
+        );
+
+        // Create player grid (right side)
+        createGrid(this.playerData, this.playerContainer, this.playerGrid);
+
+        // Position the containers
+        const playerStartX = startX + totalWidth + spacing;
+        this.opponentContainer.setPosition(startX + totalWidth / 2, gridY);
+        this.playerContainer.setPosition(playerStartX + totalWidth / 2, gridY);
+
+        // Add mage sprites at their positions
+        if (this.playerData && this.opponentData) {
+            // Add player mage
+            const playerPos = this.playerData.playerPosition;
+            const playerMageX =
+                playerPos.x * (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+            const playerMageY =
+                playerPos.y * (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+            const playerMage = this.add
+                .image(playerMageX, playerMageY, "mage")
+                .setDisplaySize(this.TILE_SIZE * 0.8, this.TILE_SIZE * 0.8);
+            this.playerContainer.add(playerMage);
+
+            // Add opponent mage
+            const opponentPos = this.opponentData.playerPosition;
+            const opponentMageX =
+                opponentPos.x * (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+            const opponentMageY =
+                opponentPos.y * (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+            const opponentMage = this.add
+                .image(opponentMageX, opponentMageY, "mage")
+                .setDisplaySize(this.TILE_SIZE * 0.8, this.TILE_SIZE * 0.8);
+            this.opponentContainer.add(opponentMage);
         }
     }
 
     private updateOpponentDisplay() {
-        if (this.matchData) {
-            const opponentId = this.matchData.opponent;
+        if (this.matchMetaData) {
+            const opponentId = this.matchMetaData.opponent;
             this.opponentText.setText(`Opponent: ${opponentId}`);
         }
     }

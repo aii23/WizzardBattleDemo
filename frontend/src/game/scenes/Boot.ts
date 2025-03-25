@@ -13,10 +13,15 @@ export class Boot extends Scene {
         this.load.image("main_screen", "assets/main_screen.jpg");
         this.load.image("wizard_1", "assets/wizards/1.jpg");
         this.load.image("construction", "assets/construction.png");
+        this.load.image("mage", "assets/wizards/1.jpg");
 
         for (const spell of allSpells) {
             this.load.image(spell.name, `assets/spells/${spell.image}`);
         }
+
+        this.load.image("valley", "assets/tiles/Valley.png");
+        this.load.image("rock", "assets/tiles/Rock.png");
+        this.load.image("water", "assets/tiles/Water.png");
     }
 
     create() {

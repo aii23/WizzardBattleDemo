@@ -20,6 +20,7 @@ export interface Spell {
 export interface MatchData {
   spells: Spell[];
   mapStructure: MapStructure;
+  playerPosition: { x: number; y: number };
 }
 
 export interface QueueEntry {
@@ -30,4 +31,5 @@ export interface QueueEntry {
 export interface MatchFoundResponse {
   matchId: string;
   opponent: string;
+  opponentData: MatchData;
 }

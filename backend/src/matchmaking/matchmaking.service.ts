@@ -42,13 +42,19 @@ export class MatchmakingService {
   ): void {
     const matchId = Math.random().toString(36).substring(7);
     const player1Response: MatchFoundResponse = {
-      matchId,
+      matchId: "test id",
       opponent: player2.id,
+      opponentData: player2Data,
     };
     const player2Response: MatchFoundResponse = {
       matchId,
       opponent: player1.id,
+      opponentData: player1Data,
     };
+
+    console.log("Match found between:", player1.id, player2.id);
+    console.log("Player 1 response:", JSON.stringify(player1Response, null, 2));
+    console.log("Player 2 response:", JSON.stringify(player2Response, null, 2));
 
     player1.emit("matchFound", player1Response);
     player2.emit("matchFound", player2Response);

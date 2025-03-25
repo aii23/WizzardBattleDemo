@@ -2,6 +2,7 @@ import { EventBus } from "../EventBus";
 import { GameObjects, Scene } from "phaser";
 import { io } from "socket.io-client";
 import { UserState } from "../state/UserState";
+import { MatchData } from "@/matchmaking.types";
 
 const userState = UserState.getInstance();
 
@@ -71,10 +72,7 @@ export class Matchmaking extends Scene {
 
         // Connect to socket and start matchmaking
         this.socket = io("http://localhost:3030");
-        this.socket.emit("findMatch", {
-            spells: userState.userSpells,
-            mapStructure: userState.userMap,
-        });
+        this.socket.emit("findMatch", userState.getData());
 
         this.socket.on("waitingForOpponent", () => {
             console.log("Waiting for opponent...");
@@ -82,8 +80,20 @@ export class Matchmaking extends Scene {
 
         this.socket.on(
             "matchFound",
-            (data: { matchId: string; opponent: string }) => {
-                console.log("Match found!", data);
+            (data: {
+                matchId: string;
+                opponent: string;
+                opponentData: MatchData;
+            }) => {
+                console.log(
+                    "Match found! Full data:",
+                    JSON.stringify(data, null, 2)
+                );
+                console.log("opponentData type:", typeof data.opponentData);
+                console.log(
+                    "opponentData keys:",
+                    Object.keys(data.opponentData)
+                );
                 this.handleMatchFound(data);
             }
         );
@@ -91,7 +101,11 @@ export class Matchmaking extends Scene {
         EventBus.emit("current-scene-ready", this);
     }
 
-    private handleMatchFound(data: { matchId: string; opponent: string }) {
+    private handleMatchFound(data: {
+        matchId: string;
+        opponent: string;
+        opponentData: MatchData;
+    }) {
         // Stop timers
         if (this.loadingTimer) {
             this.loadingTimer.destroy();
@@ -113,8 +127,17 @@ export class Matchmaking extends Scene {
             this.socket = null;
         }
 
+        const matchMetaData = {
+            matchId: data.matchId,
+            opponent: data.opponent,
+        };
+
         // Start game scene
-        this.scene.start("Game", data);
+        this.scene.start("Game", {
+            metaData: matchMetaData,
+            playerData: userState.getData(),
+            opponentData: data.opponentData,
+        });
     }
 
     private startTimers() {
