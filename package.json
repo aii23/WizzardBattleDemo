@@ -12,6 +12,10 @@
     "build:backend": "cd backend && npm run build"
   },
   "devDependencies": {
+    "@types/socket.io": "^3.0.2",
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
   }
-} 
+}

@@ -1,22 +1,21 @@
 import { maxSelectable } from "@/game/constants/common";
 import { allSpells } from "@/game/constants/spells";
 import { UserState } from "@/game/state/UserState";
-import { ISpell } from "@/game/types";
 import { Scene } from "phaser";
-
+import { Spell } from "../../../../../common/types/matchmaking.types";
 const userState = UserState.getInstance();
 
 export class SpellTile extends Phaser.GameObjects.Image {
     isPicked: boolean;
-    spell: ISpell;
+    spell: Spell;
 
     constructor(
         scene: Scene,
         x: number,
         y: number,
-        spell: ISpell,
+        spell: Spell,
         isPicked: boolean = false,
-        onPickCallback: (newState: boolean, spell: ISpell) => void
+        onPickCallback: (newState: boolean, spell: Spell) => void
     ) {
         super(scene, x, y, spell.name);
         this.isPicked = isPicked;
@@ -85,7 +84,7 @@ export class SpellPicker extends Phaser.GameObjects.Container {
         this.add(this.selectionCountText);
     }
 
-    onPick(newState: boolean, spell: ISpell) {
+    onPick(newState: boolean, spell: Spell) {
         if (newState) {
             userState.userSpells.push(spell);
         } else {
@@ -99,7 +98,7 @@ export class SpellPicker extends Phaser.GameObjects.Container {
         );
     }
 
-    private createGrid(spells: ISpell[], spacing: number, tilesPerRow: number) {
+    private createGrid(spells: Spell[], spacing: number, tilesPerRow: number) {
         spells.forEach((spell, index) => {
             // Calculate positions relative to the container
             const localX = (index % tilesPerRow) * spacing;

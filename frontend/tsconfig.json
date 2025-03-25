@@ -14,7 +14,7 @@
     "incremental": true,
     "strictPropertyInitialization": false,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*", "../common/types/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

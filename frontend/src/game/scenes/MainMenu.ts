@@ -1,6 +1,4 @@
 import { GameObjects, Scene } from "phaser";
-import { io } from "socket.io-client";
-
 import { EventBus } from "../EventBus";
 
 export class MainMenu extends Scene {
@@ -34,23 +32,6 @@ export class MainMenu extends Scene {
         });
         startGameButton.on("pointerdown", () => {
             // Start the game by switching to the appropriate scene
-            // Connect to the matchmaking server and request to find a match
-            const socket = io("http://localhost:3030");
-            socket.emit("findMatch");
-
-            socket.on("waitingForOpponent", () => {
-                console.log("Waiting for opponent...");
-            });
-
-            socket.on(
-                "matchFound",
-                (data: { matchId: string; opponent: string }) => {
-                    console.log("Match found!", data);
-                    // Store match data for use in game scene
-                    // EventBus.emit("match-created", data);
-                    this.scene.start("Game", data);
-                }
-            );
             this.scene.start("Matchmaking");
         });
 

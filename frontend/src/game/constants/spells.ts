@@ -1,6 +1,6 @@
-import { ISpell } from "../types";
+import { Spell } from "../../../../common/types/matchmaking.types";
 
-export const allSpells: ISpell[] = [
+export const allSpells: Spell[] = [
     {
         id: 0,
         name: "Lightning",
