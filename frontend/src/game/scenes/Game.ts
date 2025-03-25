@@ -21,6 +21,7 @@ export class Game extends Scene {
     private opponentGrid: GridTile[][] = [];
     private playerContainer: GameObjects.Container;
     private opponentContainer: GameObjects.Container;
+    private spellsContainer: GameObjects.Container;
     private readonly GRID_SIZE = 4;
     private readonly TILE_SIZE = 40;
     private readonly GRID_SPACING = 1;
@@ -52,6 +53,7 @@ export class Game extends Scene {
         // Create containers for grids
         this.playerContainer = this.add.container(0, 0);
         this.opponentContainer = this.add.container(0, 0);
+        this.spellsContainer = this.add.container(0, 0);
 
         // Create opponent text
         this.opponentText = this.add
@@ -92,6 +94,7 @@ export class Game extends Scene {
         // Clear existing grids if any
         this.playerContainer.removeAll();
         this.opponentContainer.removeAll();
+        this.spellsContainer.removeAll();
 
         // Re-add the text labels
         this.opponentContainer.add(this.opponentText);
@@ -169,6 +172,10 @@ export class Game extends Scene {
         const playerStartX = startX + totalWidth + spacing;
         this.opponentContainer.setPosition(startX + totalWidth / 2, gridY);
         this.playerContainer.setPosition(playerStartX + totalWidth / 2, gridY);
+        this.spellsContainer.setPosition(
+            playerStartX + totalWidth / 2,
+            gridY + totalWidth + 50
+        );
 
         // Add mage sprites at their positions
         if (this.playerData && this.opponentData) {
@@ -198,6 +205,44 @@ export class Game extends Scene {
                 .setDisplaySize(this.TILE_SIZE * 0.8, this.TILE_SIZE * 0.8);
             this.opponentContainer.add(opponentMage);
         }
+
+        // Add spells display
+        if (this.playerData && this.playerData.spells) {
+            this.createSpellsDisplay();
+        }
+    }
+
+    private createSpellsDisplay() {
+        const spells = this.playerData?.spells || [];
+        const spellSize = 40;
+        const spacing = 10;
+        const startX = -(spells.length * (spellSize + spacing)) / 2;
+
+        spells.forEach((spell, index) => {
+            const spellX = startX + index * (spellSize + spacing);
+
+            // Create spell background
+            const spellBg = this.add
+                .rectangle(spellX, 0, spellSize, spellSize, 0x333333)
+                .setOrigin(0.5);
+            this.spellsContainer.add(spellBg);
+
+            // Add spell image
+            const spellImage = this.add
+                .image(spellX, 0, spell.name)
+                .setDisplaySize(spellSize * 0.8, spellSize * 0.8);
+            this.spellsContainer.add(spellImage);
+
+            // Add spell name
+            const spellName = this.add
+                .text(spellX, spellSize / 2 + 5, spell.name, {
+                    font: "14px Arial",
+                    color: "#ffffff",
+                    align: "center",
+                })
+                .setOrigin(0.5);
+            this.spellsContainer.add(spellName);
+        });
     }
 
     private updateOpponentDisplay() {
