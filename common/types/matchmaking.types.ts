@@ -34,3 +34,18 @@ export interface MatchFoundResponse {
   opponent: string;
   state: MatchPlayerData[];
 }
+
+export interface SpellCastInfo {
+  spellId: number;
+  target: { x: number; y: number };
+}
+
+export interface MoveInfo {
+  to: { x: number; y: number };
+}
+
+export interface UserTurn {
+  playerId: string;
+  spellCastInfo: SpellCastInfo[];
+  moveInfo: MoveInfo;
+}

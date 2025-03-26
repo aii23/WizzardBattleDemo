@@ -7,6 +7,7 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { GameSessionService } from "./game-session.service";
+import { UserTurn } from "../../../common/types/matchmaking.types";
 
 @WebSocketGateway({
   cors: {
@@ -31,7 +32,10 @@ export class GameSessionGateway
   }
 
   @SubscribeMessage("submitTurn")
-  handleTurn(client: Socket, payload: { sessionId: string; turnData: any }) {
+  handleTurn(
+    client: Socket,
+    payload: { sessionId: string; turnData: UserTurn }
+  ) {
     const { sessionId, turnData } = payload;
 
     // Validate that the client is part of this session
@@ -47,17 +51,18 @@ export class GameSessionGateway
     );
 
     if (success) {
-      const session = this.gameSessionService.getSession(sessionId);
-      if (session) {
-        // Broadcast the turn to all players in the session
-        session.players.forEach((player) => {
-          player.emit("turnUpdate", {
-            sessionId,
-            currentTurn: session.currentTurn,
-            turnData,
-          });
-        });
-      }
+      // TODO: Broadcast the turn to all players in the session
+      // const session = this.gameSessionService.getSession(sessionId);
+      // if (session) {
+      //   // Broadcast the turn to all players in the session
+      //   session.players.forEach((player) => {
+      //     player.emit("turnUpdate", {
+      //       sessionId,
+      //       currentTurn: session.currentTurn,
+      //       turnData,
+      //     });
+      //   });
+      // }
     }
 
     return { success };

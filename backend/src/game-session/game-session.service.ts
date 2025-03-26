@@ -3,19 +3,23 @@ import { Socket } from "socket.io";
 import {
   MatchFoundResponse,
   MatchPlayerData,
+  UserTurn,
 } from "../../../common/types/matchmaking.types";
 
 interface GameSession {
   id: string;
   players: Socket[];
   playersData: MatchPlayerData[];
-  currentTurn: number;
+  currentRound: number;
 }
 
 @Injectable()
 export class GameSessionService {
   private activeSessions: Map<string, GameSession> = new Map();
   private socketToSession: Map<string, string> = new Map(); // Maps socket ID to session ID
+
+  // sessionId -> roundId -> turns
+  private turns: Map<string, Map<number, UserTurn[]>> = new Map();
 
   createSession(
     id: string,
@@ -32,7 +36,7 @@ export class GameSessionService {
       id: id,
       players: players,
       playersData: playersData,
-      currentTurn: 0,
+      currentRound: 0,
     };
 
     this.activeSessions.set(session.id, session);
@@ -86,22 +90,82 @@ export class GameSessionService {
     return sessionId ? this.getSession(sessionId) : undefined;
   }
 
-  handleTurn(sessionId: string, playerId: string, turnData: any): boolean {
+  handleTurn(sessionId: string, playerId: string, turnData: UserTurn): boolean {
     const session = this.getSession(sessionId);
     if (!session) return false;
 
-    // Validate turn order
-    const currentPlayerIndex = session.players.findIndex(
-      (p) => p.id === playerId
+    const sessionRounds = this.turns.get(sessionId)!;
+
+    const roundTurns = sessionRounds.get(session.currentRound) || [];
+
+    if (playerId !== turnData.playerId) {
+      return false;
+    }
+
+    const playerAlreadyCommitted = roundTurns.find(
+      (turn) => turn.playerId === playerId
     );
-    if (currentPlayerIndex !== session.currentTurn) return false;
+    if (playerAlreadyCommitted) {
+      return false;
+    }
+
+    roundTurns.push(turnData);
+
+    sessionRounds.set(session.currentRound, roundTurns);
+
+    if (roundTurns.length === session.players.length) {
+      this.startNextRound(sessionId);
+    }
 
     // Process turn
     // Add your game logic here
 
-    // Update turn order
-    session.currentTurn = (session.currentTurn + 1) % 2;
     return true;
+  }
+
+  private processTurns(sessionId: string, turns: UserTurn[]): void {
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    // Process movement
+    for (const turn of turns) {
+      const playerData = session.playersData.find(
+        (data) => data.playerId === turn.playerId
+      );
+      if (!playerData) continue;
+
+      playerData.playerPosition = turn.moveInfo.to;
+    }
+
+    // Process spell cast
+    for (const turn of turns) {
+      for (const spellCastInfo of turn.spellCastInfo) {
+        console.log(spellCastInfo);
+      }
+    }
+  }
+
+  private startNextRound(sessionId: string): void {
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    session.currentRound++;
+
+    const sessionRounds = this.turns.get(sessionId)!;
+
+    sessionRounds.set(session.currentRound, []);
+
+    // Process turns
+    const roundTurns = sessionRounds.get(session.currentRound)!;
+
+    this.processTurns(sessionId, roundTurns);
+
+    session.players.forEach((player) => {
+      player.emit("nextRound", {
+        sessionId,
+        currentRound: session.currentRound,
+      });
+    });
   }
 
   endSession(sessionId: string): void {
