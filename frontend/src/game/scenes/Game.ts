@@ -1,6 +1,11 @@
 import { GameObjects, Scene } from "phaser";
 import { EventBus } from "../EventBus";
-import { TileType, MatchPlayerData } from "@/matchmaking.types";
+import {
+    TileType,
+    MatchPlayerData,
+    NextRoundResponse,
+} from "@/matchmaking.types";
+import { Socket } from "socket.io-client";
 
 interface MatchMetaData {
     matchId: string;
@@ -14,6 +19,7 @@ interface GridTile {
 }
 
 export class Game extends Scene {
+    private socket: Socket;
     private background: GameObjects.Image;
     private opponentText: GameObjects.Text;
     private matchMetaData: MatchMetaData | null = null;
@@ -33,16 +39,20 @@ export class Game extends Scene {
     private readonly HEALTH_BAR_WIDTH = 160;
     private readonly HEALTH_BAR_HEIGHT = 20;
 
+    private turnSubmitted: boolean = false;
+
     constructor() {
         super("Game");
     }
 
     init(data: {
+        socket: Socket;
         metaData: MatchMetaData;
         playerData: MatchPlayerData;
         opponentData: MatchPlayerData;
     }) {
         console.log("Game scene init with data:", data);
+        this.socket = data.socket;
         this.matchMetaData = data.metaData;
         this.playerData = data.playerData;
         this.opponentData = data.opponentData;
@@ -91,6 +101,9 @@ export class Game extends Scene {
 
         this.updateOpponentDisplay();
         EventBus.emit("current-scene-ready", this);
+
+        // Add socket event listeners
+        this.socket.on("nextRound", (data) => this.handleNextRound(data));
     }
 
     private createGrids() {
@@ -99,16 +112,6 @@ export class Game extends Scene {
         this.playerContainer.removeAll();
         this.opponentContainer.removeAll();
         this.spellsContainer.removeAll();
-
-        // Re-add the text labels
-        // this.opponentContainer.add(this.opponentText);
-        // const playerText = this.add
-        //     .text(0, -50, "Player", {
-        //         font: "32px Arial",
-        //         color: "#fff",
-        //     })
-        //     .setOrigin(0.5);
-        // this.playerContainer.add(playerText);
 
         // Create health bars
         this.createHealthBars();
@@ -124,7 +127,8 @@ export class Game extends Scene {
         const createGrid = (
             playerData: MatchPlayerData | null,
             container: Phaser.GameObjects.Container,
-            grid: any[][]
+            grid: any[][],
+            isPlayerGrid: boolean
         ) => {
             if (!playerData || !playerData.mapStructure) {
                 console.log("No data for grid creation");
@@ -159,6 +163,19 @@ export class Game extends Scene {
                         )
                         .setDisplaySize(this.TILE_SIZE, this.TILE_SIZE);
 
+                    if (isPlayerGrid) {
+                        tile.setInteractive();
+                        tile.on("pointerover", () =>
+                            this.handleTileHover(x, y)
+                        );
+                        tile.on("pointerout", () =>
+                            this.handleTileUnhover(x, y)
+                        );
+                        tile.on("pointerdown", () =>
+                            this.handleTileClick(x, y)
+                        );
+                    }
+
                     grid[y][x] = { x, y, sprite: tile };
                     container.add(tile);
                 }
@@ -169,11 +186,17 @@ export class Game extends Scene {
         createGrid(
             this.opponentData,
             this.opponentContainer,
-            this.opponentGrid
+            this.opponentGrid,
+            false
         );
 
         // Create player grid (right side)
-        createGrid(this.playerData, this.playerContainer, this.playerGrid);
+        createGrid(
+            this.playerData,
+            this.playerContainer,
+            this.playerGrid,
+            true
+        );
 
         // Position the containers
         const playerStartX = startX + totalWidth + spacing;
@@ -214,6 +237,14 @@ export class Game extends Scene {
         // Add spells display
         if (this.playerData && this.playerData.spells) {
             this.createSpellsDisplay();
+        }
+
+        // Highlight adjacent tiles initially
+        if (this.playerData?.playerPosition) {
+            this.highlightAdjacentTiles(
+                this.playerData.playerPosition.x,
+                this.playerData.playerPosition.y
+            );
         }
     }
 
@@ -344,6 +375,199 @@ export class Game extends Scene {
         if (this.matchMetaData) {
             const opponentId = this.matchMetaData.opponent;
             this.opponentText.setText(`Opponent: ${opponentId}`);
+        }
+    }
+
+    private handleTileHover(x: number, y: number) {
+        if (this.turnSubmitted) return;
+        if (this.isAdjacentToMage(x, y)) {
+            this.playerGrid[y][x].sprite.setTint(0x00ff00);
+        }
+    }
+
+    private handleTileUnhover(x: number, y: number) {
+        if (this.turnSubmitted) return;
+        if (this.isAdjacentToMage(x, y)) {
+            this.playerGrid[y][x].sprite.setTint(0xffff00);
+        }
+    }
+
+    private handleTileClick(x: number, y: number) {
+        if (this.turnSubmitted) return;
+        if (this.isAdjacentToMage(x, y)) {
+            this.triggerMotion(x, y);
+        }
+    }
+
+    private isAdjacentToMage(x: number, y: number): boolean {
+        if (!this.playerData?.playerPosition) return false;
+        const mageX = this.playerData.playerPosition.x;
+        const mageY = this.playerData.playerPosition.y;
+
+        return (
+            (Math.abs(x - mageX) === 1 && y === mageY) ||
+            (Math.abs(y - mageY) === 1 && x === mageX)
+        );
+    }
+
+    private highlightAdjacentTiles(mageX: number, mageY: number) {
+        // Clear previous highlights
+        this.clearHighlights();
+
+        // Highlight adjacent tiles
+        const adjacentPositions = [
+            { x: mageX + 1, y: mageY },
+            { x: mageX - 1, y: mageY },
+            { x: mageX, y: mageY + 1 },
+            { x: mageX, y: mageY - 1 },
+        ];
+
+        adjacentPositions.forEach((pos) => {
+            if (
+                pos.x >= 0 &&
+                pos.x < this.GRID_SIZE &&
+                pos.y >= 0 &&
+                pos.y < this.GRID_SIZE
+            ) {
+                this.playerGrid[pos.y][pos.x].sprite.setTint(0xffff00);
+            }
+        });
+    }
+
+    private clearHighlights() {
+        for (let y = 0; y < this.GRID_SIZE; y++) {
+            for (let x = 0; x < this.GRID_SIZE; x++) {
+                this.playerGrid[y][x].sprite.clearTint();
+            }
+        }
+    }
+
+    private triggerMotion(targetX: number, targetY: number) {
+        if (!this.playerData?.playerPosition) return;
+
+        const currentX = this.playerData.playerPosition.x;
+        const currentY = this.playerData.playerPosition.y;
+
+        // Update player position
+        this.playerData.playerPosition = { x: targetX, y: targetY };
+
+        // Update mage sprite position
+        // const mageX =
+        //     targetX * (this.TILE_SIZE + this.GRID_SPACING) + this.TILE_SIZE / 2;
+        // const mageY =
+        //     targetY * (this.TILE_SIZE + this.GRID_SPACING) + this.TILE_SIZE / 2;
+
+        // Find and update mage sprite position
+        // const mageSprite = this.playerContainer.list.find(
+        //     (obj) =>
+        //         obj instanceof Phaser.GameObjects.Image &&
+        //         obj.texture.key === "mage"
+        // ) as Phaser.GameObjects.Image;
+
+        // if (mageSprite) {
+        //     mageSprite.setPosition(mageX, mageY);
+        // }
+
+        // Update highlights for new position
+        // this.highlightAdjacentTiles(targetX, targetY);
+
+        this.turnSubmitted = true;
+
+        this.socket.emit("submitTurn", {
+            sessionId: this.matchMetaData?.matchId,
+            turnData: {
+                playerId: this.playerData?.playerId,
+                moveInfo: { to: { x: targetX, y: targetY } },
+                spellCastInfo: [],
+            },
+        });
+
+        // Emit motion event
+        EventBus.emit("motion", {
+            from: { x: currentX, y: currentY },
+            to: { x: targetX, y: targetY },
+        });
+    }
+
+    private handleNextRound(data: NextRoundResponse) {
+        console.log("Received next round data:", data);
+
+        // Update player data
+        this.playerData = data.state.find(
+            (player) => player.playerId === this.playerData?.playerId
+        )!;
+
+        // Update opponent data
+        this.opponentData = data.state.find(
+            (player) => player.playerId !== this.playerData?.playerId
+        )!;
+
+        // Reset turn submission flag
+        this.turnSubmitted = false;
+
+        // Update visual elements
+        this.updateGameState();
+    }
+
+    private updateGameState() {
+        // Update health bars
+        this.updateHealthBars();
+
+        // Update mage positions
+        this.updateMagePositions();
+
+        // Update highlights for new player position
+        if (this.playerData?.playerPosition) {
+            this.highlightAdjacentTiles(
+                this.playerData.playerPosition.x,
+                this.playerData.playerPosition.y
+            );
+        }
+    }
+
+    private updateMagePositions() {
+        // Update player mage position
+        if (this.playerData?.playerPosition) {
+            const playerMageX =
+                this.playerData.playerPosition.x *
+                    (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+            const playerMageY =
+                this.playerData.playerPosition.y *
+                    (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+
+            const playerMageSprite = this.playerContainer.list.find(
+                (obj) =>
+                    obj instanceof Phaser.GameObjects.Image &&
+                    obj.texture.key === "mage"
+            ) as Phaser.GameObjects.Image;
+
+            if (playerMageSprite) {
+                playerMageSprite.setPosition(playerMageX, playerMageY);
+            }
+        }
+
+        // Update opponent mage position
+        if (this.opponentData?.playerPosition) {
+            const opponentMageX =
+                this.opponentData.playerPosition.x *
+                    (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+            const opponentMageY =
+                this.opponentData.playerPosition.y *
+                    (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+
+            const opponentMageSprite = this.opponentContainer.list.find(
+                (obj) =>
+                    obj instanceof Phaser.GameObjects.Image &&
+                    obj.texture.key === "mage"
+            ) as Phaser.GameObjects.Image;
+
+            if (opponentMageSprite) {
+                opponentMageSprite.setPosition(opponentMageX, opponentMageY);
+            }
         }
     }
 }

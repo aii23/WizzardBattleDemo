@@ -36,6 +36,12 @@ export interface MatchFoundResponse {
   state: MatchPlayerData[];
 }
 
+export interface NextRoundResponse {
+  sessionId: string;
+  currentRound: number;
+  state: MatchPlayerData[];
+}
+
 export interface SpellCastInfo {
   spellId: number;
   target: { x: number; y: number };
@@ -48,5 +54,5 @@ export interface MoveInfo {
 export interface UserTurn {
   playerId: string;
   spellCastInfo: SpellCastInfo[];
-  moveInfo: MoveInfo;
+  moveInfo: MoveInfo | null;
 }

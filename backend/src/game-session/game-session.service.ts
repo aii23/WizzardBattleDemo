@@ -45,6 +45,8 @@ export class GameSessionService {
       this.socketToSession.set(player.id, session.id);
     });
 
+    this.turns.set(session.id, new Map());
+
     return session.id;
   }
 
@@ -91,6 +93,7 @@ export class GameSessionService {
   }
 
   handleTurn(sessionId: string, playerId: string, turnData: UserTurn): boolean {
+    console.log("handleTurn", sessionId, playerId, turnData);
     const session = this.getSession(sessionId);
     if (!session) return false;
 
@@ -129,12 +132,16 @@ export class GameSessionService {
 
     // Process movement
     for (const turn of turns) {
+      console.log("turn", turn);
       const playerData = session.playersData.find(
         (data) => data.playerId === turn.playerId
       );
       if (!playerData) continue;
 
-      playerData.playerPosition = turn.moveInfo.to;
+      if (turn.moveInfo) {
+        playerData.playerPosition = turn.moveInfo.to;
+        console.log("playerData after move", playerData);
+      }
     }
 
     // Process spell cast
@@ -146,24 +153,27 @@ export class GameSessionService {
   }
 
   private startNextRound(sessionId: string): void {
+    console.log("startNextRound", sessionId);
     const session = this.getSession(sessionId);
     if (!session) return;
 
-    session.currentRound++;
-
     const sessionRounds = this.turns.get(sessionId)!;
-
-    sessionRounds.set(session.currentRound, []);
 
     // Process turns
     const roundTurns = sessionRounds.get(session.currentRound)!;
 
+    console.log("this.processTurns(sessionId, roundTurns);", roundTurns);
     this.processTurns(sessionId, roundTurns);
+
+    session.currentRound++;
+
+    sessionRounds.set(session.currentRound, []);
 
     session.players.forEach((player) => {
       player.emit("nextRound", {
         sessionId,
         currentRound: session.currentRound,
+        state: this.getStateForPlayer(sessionId, player.id),
       });
     });
   }

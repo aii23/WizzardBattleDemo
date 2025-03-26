@@ -129,6 +129,7 @@ export class Matchmaking extends Scene {
             opponentData: data.state.find(
                 (player) => player.playerId !== this.socket.id
             ),
+            socket: this.socket,
         });
     }
 
