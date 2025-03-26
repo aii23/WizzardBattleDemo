@@ -28,6 +28,10 @@ export class Game extends Scene {
     private playerData: MatchPlayerData | null = null;
     private opponentData: MatchPlayerData | null = null;
     private isInitialized: boolean = false;
+    private playerHealthBar: GameObjects.Container;
+    private opponentHealthBar: GameObjects.Container;
+    private readonly HEALTH_BAR_WIDTH = 160;
+    private readonly HEALTH_BAR_HEIGHT = 20;
 
     constructor() {
         super("Game");
@@ -97,14 +101,17 @@ export class Game extends Scene {
         this.spellsContainer.removeAll();
 
         // Re-add the text labels
-        this.opponentContainer.add(this.opponentText);
-        const playerText = this.add
-            .text(0, -50, "Player", {
-                font: "32px Arial",
-                color: "#fff",
-            })
-            .setOrigin(0.5);
-        this.playerContainer.add(playerText);
+        // this.opponentContainer.add(this.opponentText);
+        // const playerText = this.add
+        //     .text(0, -50, "Player", {
+        //         font: "32px Arial",
+        //         color: "#fff",
+        //     })
+        //     .setOrigin(0.5);
+        // this.playerContainer.add(playerText);
+
+        // Create health bars
+        this.createHealthBars();
 
         // Calculate grid positions for horizontal layout
         const totalWidth =
@@ -241,6 +248,96 @@ export class Game extends Scene {
                 .setOrigin(0.5);
             this.spellsContainer.add(spellName);
         });
+    }
+
+    private createHealthBars() {
+        // Create opponent health bar container
+        this.opponentHealthBar = this.add.container(0, 0);
+
+        // Create player health bar container
+        this.playerHealthBar = this.add.container(0, 0);
+
+        // Helper function to create a health bar
+        const createHealthBar = (
+            container: GameObjects.Container,
+            playerData: MatchPlayerData | null
+        ) => {
+            if (!playerData) return;
+
+            // Background (gray)
+            const bg = this.add
+                .rectangle(
+                    0,
+                    0,
+                    this.HEALTH_BAR_WIDTH,
+                    this.HEALTH_BAR_HEIGHT,
+                    0x333333
+                )
+                .setOrigin(0.5);
+            container.add(bg);
+
+            // Health bar (green)
+            const healthBar = this.add
+                .rectangle(
+                    -this.HEALTH_BAR_WIDTH / 2,
+                    0,
+                    this.HEALTH_BAR_WIDTH * (playerData.health / 100),
+                    this.HEALTH_BAR_HEIGHT,
+                    0x00ff00
+                )
+                .setOrigin(0, 0.5);
+            container.add(healthBar);
+
+            // Health text
+            const healthText = this.add
+                .text(0, 0, `${playerData.health}/100`, {
+                    font: "16px Arial",
+                    color: "#ffffff",
+                })
+                .setOrigin(0.5);
+            container.add(healthText);
+        };
+
+        // Create health bars for both players
+        createHealthBar(this.opponentHealthBar, this.opponentData);
+        createHealthBar(this.playerHealthBar, this.playerData);
+
+        // Add health bars to their respective containers
+        this.opponentContainer.add(this.opponentHealthBar);
+        this.playerContainer.add(this.playerHealthBar);
+
+        // Position health bars above their respective grids
+        const gridXOffset =
+            (this.GRID_SIZE * (this.TILE_SIZE + this.GRID_SPACING)) / 2;
+        const gridYOffset = -this.TILE_SIZE;
+        this.opponentHealthBar.setPosition(gridXOffset, gridYOffset);
+        this.playerHealthBar.setPosition(gridXOffset, gridYOffset);
+    }
+
+    private updateHealthBars() {
+        if (!this.playerData || !this.opponentData) return;
+
+        // Update player health bar
+        const playerHealthBar = this.playerHealthBar
+            .list[1] as GameObjects.Rectangle;
+        const playerHealthText = this.playerHealthBar
+            .list[2] as GameObjects.Text;
+        if (playerHealthBar && playerHealthText) {
+            playerHealthBar.width =
+                this.HEALTH_BAR_WIDTH * (this.playerData.health / 100);
+            playerHealthText.setText(`${this.playerData.health}/100`);
+        }
+
+        // Update opponent health bar
+        const opponentHealthBar = this.opponentHealthBar
+            .list[1] as GameObjects.Rectangle;
+        const opponentHealthText = this.opponentHealthBar
+            .list[2] as GameObjects.Text;
+        if (opponentHealthBar && opponentHealthText) {
+            opponentHealthBar.width =
+                this.HEALTH_BAR_WIDTH * (this.opponentData.health / 100);
+            opponentHealthText.setText(`${this.opponentData.health}/100`);
+        }
     }
 
     private updateOpponentDisplay() {

@@ -183,6 +183,7 @@ export class GameSessionService {
     return {
       playerId: data.playerId,
       mapStructure: data.mapStructure,
+      health: data.health,
     };
   }
 
@@ -192,6 +193,7 @@ export class GameSessionService {
       spells: data.spells,
       mapStructure: data.mapStructure,
       playerPosition: data.playerPosition,
+      health: data.health,
     };
   }
 
