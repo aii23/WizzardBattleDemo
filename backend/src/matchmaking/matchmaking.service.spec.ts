@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { MatchmakingService } from "./matchmaking.service";
 import { Socket } from "socket.io";
 import {
-  MatchData,
+  MatchPlayerData,
   QueueEntry,
   TileType,
 } from "../../../common/types/matchmaking.types";
@@ -50,7 +50,8 @@ describe("MatchmakingService", () => {
 
   describe("addToQueue", () => {
     it("should add player to queue when no opponent is available", () => {
-      const matchData: MatchData = {
+      const matchData: MatchPlayerData = {
+        playerId: "player1",
         spells: [],
         mapStructure: {
           matrix: [[TileType.VALLEY]],
@@ -64,14 +65,16 @@ describe("MatchmakingService", () => {
     });
 
     it("should match players when opponent is available", () => {
-      const matchData1: MatchData = {
+      const matchData1: MatchPlayerData = {
+        playerId: "player1",
         spells: [],
         mapStructure: {
           matrix: [[TileType.VALLEY]],
         },
         playerPosition: { x: 0, y: 0 },
       };
-      const matchData2: MatchData = {
+      const matchData2: MatchPlayerData = {
+        playerId: "player2",
         spells: [],
         mapStructure: {
           matrix: [[TileType.ROCK]],
@@ -108,7 +111,8 @@ describe("MatchmakingService", () => {
 
   describe("removeFromQueue", () => {
     it("should remove player from queue", () => {
-      const matchData: MatchData = {
+      const matchData: MatchPlayerData = {
+        playerId: "player1",
         spells: [],
         mapStructure: {
           matrix: [[TileType.VALLEY]],
@@ -131,21 +135,24 @@ describe("MatchmakingService", () => {
 
   describe("matchmaking flow", () => {
     it("should handle multiple players in queue correctly", () => {
-      const matchData1: MatchData = {
+      const matchData1: MatchPlayerData = {
+        playerId: "player1",
         spells: [],
         mapStructure: {
           matrix: [[TileType.VALLEY]],
         },
         playerPosition: { x: 0, y: 0 },
       };
-      const matchData2: MatchData = {
+      const matchData2: MatchPlayerData = {
+        playerId: "player2",
         spells: [],
         mapStructure: {
           matrix: [[TileType.ROCK]],
         },
         playerPosition: { x: 1, y: 1 },
       };
-      const matchData3: MatchData = {
+      const matchData3: MatchPlayerData = {
+        playerId: "player3",
         spells: [],
         mapStructure: {
           matrix: [[TileType.WATER]],

@@ -17,19 +17,20 @@ export interface Spell {
   image: string;
 }
 
-export interface MatchData {
-  spells: Spell[];
-  mapStructure: MapStructure;
-  playerPosition: { x: number; y: number };
+export interface MatchPlayerData {
+  playerId: string;
+  spells?: Spell[];
+  mapStructure?: MapStructure;
+  playerPosition?: { x: number; y: number };
 }
 
 export interface QueueEntry {
   socket: Socket;
-  matchData: MatchData;
+  matchData: MatchPlayerData;
 }
 
 export interface MatchFoundResponse {
   matchId: string;
   opponent: string;
-  opponentData: MatchData;
+  state: MatchPlayerData[];
 }

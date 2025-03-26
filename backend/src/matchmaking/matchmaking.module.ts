@@ -1,8 +1,10 @@
 import { Module } from "@nestjs/common";
 import { MatchmakingService } from "./matchmaking.service";
 import { MatchmakingGateway } from "./matchmaking.gateway";
+import { GameSessionModule } from "../game-session/game-session.module";
 
 @Module({
-  providers: [MatchmakingGateway, MatchmakingService],
+  imports: [GameSessionModule],
+  providers: [MatchmakingService, MatchmakingGateway],
 })
 export class MatchmakingModule {}

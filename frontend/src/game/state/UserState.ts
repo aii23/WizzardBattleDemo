@@ -1,7 +1,7 @@
 import { allSpells } from "../constants/spells";
 import {
     MapStructure,
-    MatchData,
+    MatchPlayerData,
     Spell,
     TileType,
 } from "../../../../common/types/matchmaking.types";
@@ -27,8 +27,9 @@ export class UserState {
         return UserState.instance;
     }
 
-    getData(): MatchData {
+    getData(playerId: string): MatchPlayerData {
         return {
+            playerId,
             spells: this.userSpells,
             mapStructure: this.userMap,
             playerPosition: this.userPosition,

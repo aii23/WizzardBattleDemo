@@ -1,8 +1,8 @@
 import { EventBus } from "../EventBus";
 import { GameObjects, Scene } from "phaser";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import { UserState } from "../state/UserState";
-import { MatchData } from "@/matchmaking.types";
+import { MatchFoundResponse, MatchPlayerData } from "@/matchmaking.types";
 
 const userState = UserState.getInstance();
 
@@ -15,7 +15,7 @@ export class Matchmaking extends Scene {
     private timeElapsed: number = 0;
     private loadingTimer: Phaser.Time.TimerEvent | null = null;
     private dotsTimer: Phaser.Time.TimerEvent | null = null;
-    private socket: any;
+    private socket: Socket;
 
     constructor() {
         super("Matchmaking");
@@ -71,41 +71,26 @@ export class Matchmaking extends Scene {
         this.startTimers();
 
         // Connect to socket and start matchmaking
+        // #TODO move socket to user state
         this.socket = io("http://localhost:3030");
-        this.socket.emit("findMatch", userState.getData());
+        this.socket.on("connect", () => {
+            console.log("Connected to socket");
+            this.socket.emit("findMatch", userState.getData(this.socket.id!));
+        });
 
         this.socket.on("waitingForOpponent", () => {
             console.log("Waiting for opponent...");
         });
 
-        this.socket.on(
-            "matchFound",
-            (data: {
-                matchId: string;
-                opponent: string;
-                opponentData: MatchData;
-            }) => {
-                console.log(
-                    "Match found! Full data:",
-                    JSON.stringify(data, null, 2)
-                );
-                console.log("opponentData type:", typeof data.opponentData);
-                console.log(
-                    "opponentData keys:",
-                    Object.keys(data.opponentData)
-                );
-                this.handleMatchFound(data);
-            }
-        );
+        this.socket.on("matchFound", (data: MatchFoundResponse) => {
+            console.log("Match found! Full data:", data);
+            this.handleMatchFound(data);
+        });
 
         EventBus.emit("current-scene-ready", this);
     }
 
-    private handleMatchFound(data: {
-        matchId: string;
-        opponent: string;
-        opponentData: MatchData;
-    }) {
+    private handleMatchFound(data: MatchFoundResponse) {
         // Stop timers
         if (this.loadingTimer) {
             this.loadingTimer.destroy();
@@ -122,21 +107,28 @@ export class Matchmaking extends Scene {
         if (this.timerText) this.timerText.setVisible(false);
 
         // Disconnect socket
-        if (this.socket) {
-            this.socket.disconnect();
-            this.socket = null;
-        }
+        // if (this.socket) {
+        //     this.socket.disconnect();
+        //     this.socket = null;
+        // }
 
         const matchMetaData = {
             matchId: data.matchId,
             opponent: data.opponent,
         };
 
+        console.log("Match found! Full data:", data);
+        console.log(this.socket.id);
+
         // Start game scene
         this.scene.start("Game", {
             metaData: matchMetaData,
-            playerData: userState.getData(),
-            opponentData: data.opponentData,
+            playerData: data.state.find(
+                (player) => player.playerId === this.socket.id
+            ),
+            opponentData: data.state.find(
+                (player) => player.playerId !== this.socket.id
+            ),
         });
     }
 
@@ -183,10 +175,10 @@ export class Matchmaking extends Scene {
         }
 
         // Clean up socket connection
-        if (this.socket) {
-            this.socket.disconnect();
-            this.socket = null;
-        }
+        // if (this.socket) {
+        //     this.socket.disconnect();
+        //     this.socket = null;
+        // }
     }
 }
 

@@ -1,6 +1,6 @@
 import { GameObjects, Scene } from "phaser";
 import { EventBus } from "../EventBus";
-import { TileType, MatchData } from "@/matchmaking.types";
+import { TileType, MatchPlayerData } from "@/matchmaking.types";
 
 interface MatchMetaData {
     matchId: string;
@@ -25,8 +25,8 @@ export class Game extends Scene {
     private readonly GRID_SIZE = 4;
     private readonly TILE_SIZE = 40;
     private readonly GRID_SPACING = 1;
-    private playerData: MatchData | null = null;
-    private opponentData: MatchData | null = null;
+    private playerData: MatchPlayerData | null = null;
+    private opponentData: MatchPlayerData | null = null;
     private isInitialized: boolean = false;
 
     constructor() {
@@ -35,8 +35,8 @@ export class Game extends Scene {
 
     init(data: {
         metaData: MatchMetaData;
-        playerData: MatchData;
-        opponentData: MatchData;
+        playerData: MatchPlayerData;
+        opponentData: MatchPlayerData;
     }) {
         console.log("Game scene init with data:", data);
         this.matchMetaData = data.metaData;
@@ -115,11 +115,11 @@ export class Game extends Scene {
 
         // Helper function to create a grid
         const createGrid = (
-            playerData: MatchData | null,
+            playerData: MatchPlayerData | null,
             container: Phaser.GameObjects.Container,
             grid: any[][]
         ) => {
-            if (!playerData) {
+            if (!playerData || !playerData.mapStructure) {
                 console.log("No data for grid creation");
                 return;
             }
@@ -177,34 +177,32 @@ export class Game extends Scene {
             gridY + totalWidth + 50
         );
 
-        // Add mage sprites at their positions
-        if (this.playerData && this.opponentData) {
-            // Add player mage
-            const playerPos = this.playerData.playerPosition;
-            const playerMageX =
-                playerPos.x * (this.TILE_SIZE + this.GRID_SPACING) +
+        // Helper function to create and position a mage sprite
+        const createMage = (
+            data: MatchPlayerData | null,
+            container: Phaser.GameObjects.Container
+        ) => {
+            if (!data || !data.playerPosition) {
+                console.log("No player position data for mage creation");
+                return;
+            }
+            const pos = data.playerPosition;
+            const mageX =
+                pos.x * (this.TILE_SIZE + this.GRID_SPACING) +
                 this.TILE_SIZE / 2;
-            const playerMageY =
-                playerPos.y * (this.TILE_SIZE + this.GRID_SPACING) +
+            const mageY =
+                pos.y * (this.TILE_SIZE + this.GRID_SPACING) +
                 this.TILE_SIZE / 2;
-            const playerMage = this.add
-                .image(playerMageX, playerMageY, "mage")
-                .setDisplaySize(this.TILE_SIZE * 0.8, this.TILE_SIZE * 0.8);
-            this.playerContainer.add(playerMage);
 
-            // Add opponent mage
-            const opponentPos = this.opponentData.playerPosition;
-            const opponentMageX =
-                opponentPos.x * (this.TILE_SIZE + this.GRID_SPACING) +
-                this.TILE_SIZE / 2;
-            const opponentMageY =
-                opponentPos.y * (this.TILE_SIZE + this.GRID_SPACING) +
-                this.TILE_SIZE / 2;
-            const opponentMage = this.add
-                .image(opponentMageX, opponentMageY, "mage")
+            const mage = this.add
+                .image(mageX, mageY, "mage")
                 .setDisplaySize(this.TILE_SIZE * 0.8, this.TILE_SIZE * 0.8);
-            this.opponentContainer.add(opponentMage);
-        }
+            container.add(mage);
+        };
+
+        // Add player and opponent mages
+        createMage(this.playerData, this.playerContainer);
+        createMage(this.opponentData, this.opponentContainer);
 
         // Add spells display
         if (this.playerData && this.playerData.spells) {
