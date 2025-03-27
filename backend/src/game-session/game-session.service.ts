@@ -5,6 +5,7 @@ import {
   MatchPlayerData,
   UserTurn,
 } from "../../../common/types/matchmaking.types";
+import { allSpells } from "../../../common/types/spells";
 
 interface GameSession {
   id: string;
@@ -46,6 +47,13 @@ export class GameSessionService {
     });
 
     this.turns.set(session.id, new Map());
+
+    console.log("GameSessionService createSession", session.id);
+    console.log("this.activeSessions", session);
+    console.log(
+      "this.socketToSession",
+      session.playersData.map((data) => data.playerPosition)
+    );
 
     return session.id;
   }
@@ -147,6 +155,35 @@ export class GameSessionService {
     // Process spell cast
     for (const turn of turns) {
       for (const spellCastInfo of turn.spellCastInfo) {
+        const spell = allSpells.find((s) => s.id === spellCastInfo.spellId);
+        if (!spell) {
+          console.error("Spell not found", spellCastInfo.spellId);
+          continue;
+        }
+
+        const targetPlayer = session.playersData.find(
+          (data) => data.playerId === spellCastInfo.targetId
+        );
+        if (!targetPlayer) {
+          console.error("Target player not found", spellCastInfo.targetId);
+          continue;
+        }
+
+        console.log("spellCastInfo", spellCastInfo);
+        console.log("targetPlayer", targetPlayer);
+
+        const effectResult = spell.effect(
+          spellCastInfo.targetPosition,
+          targetPlayer
+        );
+
+        session.playersData = session.playersData.map((data) => {
+          if (data.playerId === spellCastInfo.targetId) {
+            return effectResult;
+          }
+          return data;
+        });
+
         console.log(spellCastInfo);
       }
     }

@@ -1,7 +1,8 @@
-import { allSpells } from "../constants/spells";
+import { allSpells } from "../../../../common/types/spells";
 import {
     MapStructure,
     MatchPlayerData,
+    Position,
     Spell,
     TileType,
 } from "../../../../common/types/matchmaking.types";
@@ -10,7 +11,7 @@ export class UserState {
     private static instance: UserState;
     userSpells: Spell[];
     userMap: MapStructure;
-    userPosition: { x: number; y: number };
+    userPosition: Position;
     userHealth: number;
 
     private constructor() {
@@ -18,7 +19,7 @@ export class UserState {
         this.userMap = {
             matrix: Array(4).fill(Array(4).fill(TileType.VALLEY)),
         };
-        this.userPosition = { x: 2, y: 2 };
+        this.userPosition = new Position(2, 2);
         this.userHealth = 100;
     }
 

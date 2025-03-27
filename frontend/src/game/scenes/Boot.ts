@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { allSpells } from "../constants/spells";
+import { allSpells } from "../../../../common/types/spells";
 
 export class Boot extends Scene {
     constructor() {

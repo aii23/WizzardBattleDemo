@@ -8,6 +8,8 @@ import {
 import { Server, Socket } from "socket.io";
 import { GameSessionService } from "./game-session.service";
 import { UserTurn } from "../../../common/types/matchmaking.types";
+import { TransformedUserTurn } from "../types/matchmaking.types";
+import { plainToClass } from "class-transformer";
 
 @WebSocketGateway({
   cors: {
@@ -32,11 +34,11 @@ export class GameSessionGateway
   }
 
   @SubscribeMessage("submitTurn")
-  handleTurn(
-    client: Socket,
-    payload: { sessionId: string; turnData: UserTurn }
-  ) {
+  handleTurn(client: Socket, payload: { sessionId: string; turnData: any }) {
     const { sessionId, turnData } = payload;
+
+    // Transform the incoming turn data
+    const transformedTurn = plainToClass(TransformedUserTurn, turnData);
 
     // Validate that the client is part of this session
     const session = this.gameSessionService.getSessionBySocketId(client.id);
@@ -47,7 +49,7 @@ export class GameSessionGateway
     const success = this.gameSessionService.handleTurn(
       sessionId,
       client.id,
-      turnData
+      transformedTurn
     );
 
     if (success) {

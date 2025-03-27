@@ -6,8 +6,31 @@ export enum TileType {
   WATER = 2,
 }
 
+export enum SpellEffect {
+  FRIENDLY_EFFECT = 0,
+  ENEMY_EFFECT = 1,
+}
+
 export interface MapStructure {
   matrix: TileType[][];
+}
+
+export class Position {
+  x: number;
+  y: number;
+
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+
+  equals(other: Position): boolean {
+    return this.x === other.x && this.y === other.y;
+  }
+
+  manhattanDistance(other: Position): number {
+    return Math.abs(this.x - other.x) + Math.abs(this.y - other.y);
+  }
 }
 
 export interface Spell {
@@ -15,6 +38,8 @@ export interface Spell {
   name: string;
   description: string;
   image: string;
+  effectType: SpellEffect;
+  effect: (castPosition: Position, player: MatchPlayerData) => MatchPlayerData;
 }
 
 export interface MatchPlayerData {
@@ -22,7 +47,7 @@ export interface MatchPlayerData {
   health: number;
   spells?: Spell[];
   mapStructure?: MapStructure;
-  playerPosition?: { x: number; y: number };
+  playerPosition?: Position;
 }
 
 export interface QueueEntry {
@@ -44,11 +69,12 @@ export interface NextRoundResponse {
 
 export interface SpellCastInfo {
   spellId: number;
-  target: { x: number; y: number };
+  targetId: string;
+  targetPosition: Position;
 }
 
 export interface MoveInfo {
-  to: { x: number; y: number };
+  to: Position;
 }
 
 export interface UserTurn {

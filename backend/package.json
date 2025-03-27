@@ -25,6 +25,8 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/platform-socket.io": "^10.0.0",
     "@nestjs/websockets": "^10.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "socket.io": "^4.7.2"
@@ -52,4 +54,4 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
   }
-} 
+}

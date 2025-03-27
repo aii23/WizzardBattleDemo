@@ -3,6 +3,7 @@ import { MatchmakingService } from "./matchmaking.service";
 import { Socket } from "socket.io";
 import {
   MatchPlayerData,
+  Position,
   QueueEntry,
   TileType,
 } from "../../../common/types/matchmaking.types";
@@ -56,7 +57,7 @@ describe("MatchmakingService", () => {
         mapStructure: {
           matrix: [[TileType.VALLEY]],
         },
-        playerPosition: { x: 0, y: 0 },
+        playerPosition: new Position(0, 0),
         health: 100,
       };
       const result = service.addToQueue(mockSocket1 as Socket, matchData);
@@ -72,7 +73,7 @@ describe("MatchmakingService", () => {
         mapStructure: {
           matrix: [[TileType.VALLEY]],
         },
-        playerPosition: { x: 0, y: 0 },
+        playerPosition: new Position(0, 0),
         health: 100,
       };
       const matchData2: MatchPlayerData = {
@@ -81,7 +82,7 @@ describe("MatchmakingService", () => {
         mapStructure: {
           matrix: [[TileType.ROCK]],
         },
-        playerPosition: { x: 1, y: 1 },
+        playerPosition: new Position(1, 1),
         health: 100,
       };
 
@@ -120,7 +121,7 @@ describe("MatchmakingService", () => {
         mapStructure: {
           matrix: [[TileType.VALLEY]],
         },
-        playerPosition: { x: 0, y: 0 },
+        playerPosition: new Position(0, 0),
         health: 100,
       };
 
@@ -145,7 +146,7 @@ describe("MatchmakingService", () => {
         mapStructure: {
           matrix: [[TileType.VALLEY]],
         },
-        playerPosition: { x: 0, y: 0 },
+        playerPosition: new Position(0, 0),
         health: 100,
       };
       const matchData2: MatchPlayerData = {
@@ -154,7 +155,7 @@ describe("MatchmakingService", () => {
         mapStructure: {
           matrix: [[TileType.ROCK]],
         },
-        playerPosition: { x: 1, y: 1 },
+        playerPosition: new Position(1, 1),
         health: 100,
       };
       const matchData3: MatchPlayerData = {
@@ -163,7 +164,7 @@ describe("MatchmakingService", () => {
         mapStructure: {
           matrix: [[TileType.WATER]],
         },
-        playerPosition: { x: 2, y: 2 },
+        playerPosition: new Position(2, 2),
         health: 100,
       };
 

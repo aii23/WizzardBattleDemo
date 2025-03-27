@@ -17,6 +17,6 @@
       "@/*": ["./src/*", "../common/types/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../common/types/spells.ts"],
   "exclude": ["node_modules"]
 }

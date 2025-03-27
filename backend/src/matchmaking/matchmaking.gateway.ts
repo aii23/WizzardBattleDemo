@@ -7,7 +7,8 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { MatchmakingService } from "./matchmaking.service";
-import { MatchPlayerData } from "../../../common/types/matchmaking.types";
+import { plainToClass } from "class-transformer";
+import { TransformedMatchPlayerData } from "../types/matchmaking.types";
 
 @WebSocketGateway({
   cors: {
@@ -32,9 +33,14 @@ export class MatchmakingGateway
   }
 
   @SubscribeMessage("findMatch")
-  handleFindMatch(client: Socket, matchData: MatchPlayerData) {
+  handleFindMatch(client: Socket, matchData: any) {
     console.log(`Client ${client.id} looking for match`);
-    const matchFound = this.matchmakingService.addToQueue(client, matchData);
+
+    const transformedData = plainToClass(TransformedMatchPlayerData, matchData);
+    const matchFound = this.matchmakingService.addToQueue(
+      client,
+      transformedData
+    );
 
     if (!matchFound) {
       client.emit("waitingForOpponent");

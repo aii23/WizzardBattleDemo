@@ -4,6 +4,8 @@ import {
     TileType,
     MatchPlayerData,
     NextRoundResponse,
+    Position,
+    SpellEffect,
 } from "@/matchmaking.types";
 import { Socket } from "socket.io-client";
 
@@ -40,6 +42,7 @@ export class Game extends Scene {
     private readonly HEALTH_BAR_HEIGHT = 20;
 
     private turnSubmitted: boolean = false;
+    private selectedSpell: any = null;
 
     constructor() {
         super("Game");
@@ -260,7 +263,9 @@ export class Game extends Scene {
             // Create spell background
             const spellBg = this.add
                 .rectangle(spellX, 0, spellSize, spellSize, 0x333333)
-                .setOrigin(0.5);
+                .setOrigin(0.5)
+                .setInteractive()
+                .on("pointerdown", () => this.handleSpellSelect(spell));
             this.spellsContainer.add(spellBg);
 
             // Add spell image
@@ -449,7 +454,7 @@ export class Game extends Scene {
         const currentY = this.playerData.playerPosition.y;
 
         // Update player position
-        this.playerData.playerPosition = { x: targetX, y: targetY };
+        this.playerData.playerPosition = new Position(targetX, targetY);
 
         // Update mage sprite position
         // const mageX =
@@ -569,6 +574,185 @@ export class Game extends Scene {
                 opponentMageSprite.setPosition(opponentMageX, opponentMageY);
             }
         }
+    }
+
+    private handleSpellSelect(spell: any) {
+        if (this.turnSubmitted) return;
+
+        // Deselect previous spell if any
+        if (this.selectedSpell) {
+            this.clearSpellSelection();
+        }
+
+        // Select new spell
+        this.selectedSpell = spell;
+
+        // Highlight the selected spell
+        if (this.playerData?.spells) {
+            const spellIndex = this.playerData.spells.findIndex(
+                (s) => s.name === spell.name
+            );
+            if (
+                spellIndex !== -1 &&
+                this.spellsContainer.list[spellIndex * 3]
+            ) {
+                const spellBg = this.spellsContainer.list[
+                    spellIndex * 3
+                ] as GameObjects.Rectangle;
+                spellBg.setFillStyle(0x666666);
+            }
+        }
+
+        // Only make opponent grid clickable for enemy spells
+        if (spell.effectType === SpellEffect.ENEMY_EFFECT) {
+            this.makeOpponentGridClickable();
+        } else {
+            // For friendly spells, highlight player's grid
+            this.highlightPlayerGrid();
+        }
+    }
+
+    private clearSpellSelection() {
+        if (this.selectedSpell && this.playerData?.spells) {
+            const spellIndex = this.playerData.spells.findIndex(
+                (s) => s.name === this.selectedSpell.name
+            );
+            if (
+                spellIndex !== -1 &&
+                this.spellsContainer.list[spellIndex * 3]
+            ) {
+                const spellBg = this.spellsContainer.list[
+                    spellIndex * 3
+                ] as GameObjects.Rectangle;
+                spellBg.setFillStyle(0x333333);
+            }
+            this.selectedSpell = null;
+        }
+        this.makeOpponentGridUnclickable();
+        this.clearPlayerGridHighlights();
+    }
+
+    private highlightPlayerGrid() {
+        for (let y = 0; y < this.GRID_SIZE; y++) {
+            for (let x = 0; x < this.GRID_SIZE; x++) {
+                const tile = this.playerGrid[y][x].sprite;
+                tile.setInteractive();
+                tile.on("pointerover", () => this.handlePlayerTileHover(x, y));
+                tile.on("pointerout", () => this.handlePlayerTileUnhover(x, y));
+                tile.on("pointerdown", () => this.handlePlayerTileClick(x, y));
+            }
+        }
+    }
+
+    private clearPlayerGridHighlights() {
+        for (let y = 0; y < this.GRID_SIZE; y++) {
+            for (let x = 0; x < this.GRID_SIZE; x++) {
+                const tile = this.playerGrid[y][x].sprite;
+                tile.removeInteractive();
+                tile.clearTint();
+            }
+        }
+    }
+
+    private handlePlayerTileHover(x: number, y: number) {
+        if (this.turnSubmitted || !this.selectedSpell) return;
+        this.playerGrid[y][x].sprite.setTint(0x00ff00);
+    }
+
+    private handlePlayerTileUnhover(x: number, y: number) {
+        if (this.turnSubmitted || !this.selectedSpell) return;
+        this.playerGrid[y][x].sprite.clearTint();
+    }
+
+    private handlePlayerTileClick(x: number, y: number) {
+        if (this.turnSubmitted || !this.selectedSpell) return;
+
+        this.turnSubmitted = true;
+
+        this.socket.emit("submitTurn", {
+            sessionId: this.matchMetaData?.matchId,
+            turnData: {
+                playerId: this.playerData?.playerId,
+                moveInfo: null,
+                spellCastInfo: [
+                    {
+                        spellId: this.selectedSpell.id,
+                        targetId: this.playerData?.playerId,
+                        targetPosition: new Position(x, y),
+                    },
+                ],
+            },
+        });
+
+        // Clear spell selection
+        this.clearSpellSelection();
+    }
+
+    private makeOpponentGridClickable() {
+        for (let y = 0; y < this.GRID_SIZE; y++) {
+            for (let x = 0; x < this.GRID_SIZE; x++) {
+                const tile = this.opponentGrid[y][x].sprite;
+                tile.setInteractive();
+                tile.on("pointerover", () =>
+                    this.handleOpponentTileHover(x, y)
+                );
+                tile.on("pointerout", () =>
+                    this.handleOpponentTileUnhover(x, y)
+                );
+                tile.on("pointerdown", () =>
+                    this.handleOpponentTileClick(x, y)
+                );
+            }
+        }
+    }
+
+    private makeOpponentGridUnclickable() {
+        for (let y = 0; y < this.GRID_SIZE; y++) {
+            for (let x = 0; x < this.GRID_SIZE; x++) {
+                const tile = this.opponentGrid[y][x].sprite;
+                tile.removeInteractive();
+                tile.clearTint();
+            }
+        }
+    }
+
+    private handleOpponentTileHover(x: number, y: number) {
+        if (this.turnSubmitted || !this.selectedSpell) return;
+        this.opponentGrid[y][x].sprite.setTint(0xff0000);
+    }
+
+    private handleOpponentTileUnhover(x: number, y: number) {
+        if (this.turnSubmitted || !this.selectedSpell) return;
+        this.opponentGrid[y][x].sprite.clearTint();
+    }
+
+    private handleOpponentTileClick(x: number, y: number) {
+        if (this.turnSubmitted || !this.selectedSpell) return;
+
+        // Only allow enemy spells on opponent grid
+        if (this.selectedSpell.effectType !== SpellEffect.ENEMY_EFFECT) {
+            return;
+        }
+
+        this.turnSubmitted = true;
+
+        this.socket.emit("submitTurn", {
+            sessionId: this.matchMetaData?.matchId,
+            turnData: {
+                playerId: this.playerData?.playerId,
+                moveInfo: null,
+                spellCastInfo: [
+                    {
+                        spellId: this.selectedSpell.id,
+                        targetId: this.opponentData?.playerId,
+                        targetPosition: new Position(x, y),
+                    },
+                ],
+            },
+        });
+
+        // Clear spell selection
+        this.clearSpellSelection();
     }
 }
 
