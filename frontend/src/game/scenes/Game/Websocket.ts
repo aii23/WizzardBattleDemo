@@ -1,4 +1,4 @@
-import { NextRoundResponse } from "@/matchmaking.types";
+import { GameOverResponse, NextRoundResponse } from "@/matchmaking.types";
 import { Game } from "./Game";
 import { GridManager } from "./Grid";
 
@@ -29,6 +29,20 @@ export class WebSocketManager {
 
         // Update visual elements
         this.updateGameState();
+    }
+
+    handleGameOver(data: GameOverResponse) {
+        console.log("Received game over data:", data);
+
+        if (data.winners.length === 0) {
+            this.game.setGameOver("Draw");
+        }
+
+        if (data.winners.includes(this.game.getPlayerData()?.playerId!)) {
+            this.game.setGameOver("You win!");
+        } else {
+            this.game.setGameOver("You lose!");
+        }
     }
 
     private updateGameState() {

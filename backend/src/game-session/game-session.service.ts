@@ -206,6 +206,19 @@ export class GameSessionService {
 
     sessionRounds.set(session.currentRound, []);
 
+    let alivePlayers = session.playersData.filter((data) => data.health > 0);
+
+    if (alivePlayers.length <= 1) {
+      session.players.forEach((player) => {
+        player.emit("gameOver", {
+          sessionId,
+          winners: alivePlayers.map((data) => data.playerId),
+        });
+      });
+
+      return;
+    }
+
     session.players.forEach((player) => {
       player.emit("nextRound", {
         sessionId,

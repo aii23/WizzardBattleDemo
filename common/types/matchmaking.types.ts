@@ -82,3 +82,8 @@ export interface UserTurn {
   spellCastInfo: SpellCastInfo[];
   moveInfo: MoveInfo | null;
 }
+
+export interface GameOverResponse {
+  sessionId: string;
+  winners: string[];
+}
