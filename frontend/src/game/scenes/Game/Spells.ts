@@ -4,7 +4,6 @@ import { Game } from "./Game";
 
 export class SpellManager {
     private selectedSpell: any = null;
-    private turnSubmitted: boolean = false;
 
     constructor(private game: Game) {}
 
@@ -44,7 +43,7 @@ export class SpellManager {
     }
 
     private handleSpellSelect(spell: any) {
-        if (this.turnSubmitted) return;
+        if (this.game.isTurnSubmitted()) return;
 
         // Deselect previous spell if any
         if (this.selectedSpell) {
@@ -120,7 +119,7 @@ export class SpellManager {
                     ) as Phaser.GameObjects.Image;
 
                 if (tile) {
-                    tile.setInteractive();
+                    // Add spell-specific hover handlers while preserving existing ones
                     tile.on("pointerover", () =>
                         this.handlePlayerTileHover(x, y)
                     );
@@ -156,7 +155,16 @@ export class SpellManager {
                     ) as Phaser.GameObjects.Image;
 
                 if (tile) {
-                    tile.removeInteractive();
+                    // Remove only spell-specific handlers
+                    tile.removeListener("pointerover", () =>
+                        this.handlePlayerTileHover(x, y)
+                    );
+                    tile.removeListener("pointerout", () =>
+                        this.handlePlayerTileUnhover(x, y)
+                    );
+                    tile.removeListener("pointerdown", () =>
+                        this.handlePlayerTileClick(x, y)
+                    );
                     tile.clearTint();
                 }
             }
@@ -164,7 +172,7 @@ export class SpellManager {
     }
 
     private handlePlayerTileHover(x: number, y: number) {
-        if (this.turnSubmitted || !this.selectedSpell) return;
+        if (this.game.isTurnSubmitted() || !this.selectedSpell) return;
         const tile = this.game
             .getPlayerContainer()
             .list.find(
@@ -183,12 +191,13 @@ export class SpellManager {
             ) as Phaser.GameObjects.Image;
 
         if (tile) {
-            tile.setTint(0x00ff00);
+            // Use a different tint color for spell hover to distinguish from movement hover
+            tile.setTint(0x00ffff); // Cyan color for spell hover
         }
     }
 
     private handlePlayerTileUnhover(x: number, y: number) {
-        if (this.turnSubmitted || !this.selectedSpell) return;
+        if (this.game.isTurnSubmitted() || !this.selectedSpell) return;
         const tile = this.game
             .getPlayerContainer()
             .list.find(
@@ -212,9 +221,10 @@ export class SpellManager {
     }
 
     private handlePlayerTileClick(x: number, y: number) {
-        if (this.turnSubmitted || !this.selectedSpell) return;
+        if (this.game.isTurnSubmitted() || !this.selectedSpell) return;
 
-        this.turnSubmitted = true;
+        this.game.setTurnSubmitted(true);
+        this.game.gridManager.showWaitingText();
 
         this.game.getSocket().emit("submitTurn", {
             sessionId: this.game.getMatchMetaData()?.matchId,
@@ -300,7 +310,7 @@ export class SpellManager {
     }
 
     private handleOpponentTileHover(x: number, y: number) {
-        if (this.turnSubmitted || !this.selectedSpell) return;
+        if (this.game.isTurnSubmitted() || !this.selectedSpell) return;
         const tile = this.game
             .getOpponentContainer()
             .list.find(
@@ -324,7 +334,7 @@ export class SpellManager {
     }
 
     private handleOpponentTileUnhover(x: number, y: number) {
-        if (this.turnSubmitted || !this.selectedSpell) return;
+        if (this.game.isTurnSubmitted() || !this.selectedSpell) return;
         const tile = this.game
             .getOpponentContainer()
             .list.find(
@@ -348,14 +358,15 @@ export class SpellManager {
     }
 
     private handleOpponentTileClick(x: number, y: number) {
-        if (this.turnSubmitted || !this.selectedSpell) return;
+        if (this.game.isTurnSubmitted() || !this.selectedSpell) return;
 
         // Only allow enemy spells on opponent grid
         if (this.selectedSpell.effectType !== SpellEffect.ENEMY_EFFECT) {
             return;
         }
 
-        this.turnSubmitted = true;
+        this.game.setTurnSubmitted(true);
+        this.game.gridManager.showWaitingText();
 
         this.game.getSocket().emit("submitTurn", {
             sessionId: this.game.getMatchMetaData()?.matchId,
@@ -377,7 +388,7 @@ export class SpellManager {
     }
 
     setTurnSubmitted(value: boolean) {
-        this.turnSubmitted = value;
+        this.game.setTurnSubmitted(value);
     }
 }
 

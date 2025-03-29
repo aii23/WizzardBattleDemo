@@ -27,6 +27,7 @@ export class Game extends Scene {
     private isInitialized: boolean = false;
     private readonly HEALTH_BAR_WIDTH = 160;
     private readonly HEALTH_BAR_HEIGHT = 20;
+    private turnSubmitted: boolean = false;
 
     gridManager: GridManager;
     private spellManager: SpellManager;
@@ -171,7 +172,14 @@ export class Game extends Scene {
     }
 
     setTurnSubmitted(value: boolean) {
-        this.spellManager.setTurnSubmitted(value);
+        this.turnSubmitted = value;
+        if (!value) {
+            this.gridManager.hideWaitingText();
+        }
+    }
+
+    isTurnSubmitted(): boolean {
+        return this.turnSubmitted;
     }
 }
 

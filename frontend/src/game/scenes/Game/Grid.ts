@@ -13,6 +13,7 @@ export class GridManager {
     private opponentGrid: GridTile[][] = [];
     private playerHealthBar: GameObjects.Container;
     private opponentHealthBar: GameObjects.Container;
+    private waitingText: GameObjects.Text | null = null;
 
     constructor(private game: Game) {}
 
@@ -22,6 +23,18 @@ export class GridManager {
         this.game.getPlayerContainer().removeAll();
         this.game.getOpponentContainer().removeAll();
         this.game.getSpellsContainer().removeAll();
+
+        // Create waiting text
+        this.waitingText = this.game.add
+            .text(0, 0, "Waiting for opponent...", {
+                font: "32px Arial",
+                color: "#fff",
+                stroke: "#000",
+                strokeThickness: 4,
+            })
+            .setDepth(100)
+            .setOrigin(0.5)
+            .setVisible(false);
 
         // Create health bars
         this.createHealthBars();
@@ -242,18 +255,21 @@ export class GridManager {
     }
 
     private handleTileHover(x: number, y: number) {
+        if (this.game.isTurnSubmitted()) return;
         if (this.isAdjacentToMage(x, y)) {
             this.playerGrid[y][x].sprite.setTint(0x00ff00);
         }
     }
 
     private handleTileUnhover(x: number, y: number) {
+        if (this.game.isTurnSubmitted()) return;
         if (this.isAdjacentToMage(x, y)) {
             this.playerGrid[y][x].sprite.setTint(0xffff00);
         }
     }
 
     private handleTileClick(x: number, y: number) {
+        if (this.game.isTurnSubmitted()) return;
         if (this.isAdjacentToMage(x, y)) {
             this.triggerMotion(x, y);
         }
@@ -315,6 +331,12 @@ export class GridManager {
             targetY
         );
 
+        // Show waiting text
+        this.showWaitingText();
+
+        // Set turn as submitted
+        this.game.setTurnSubmitted(true);
+
         // Emit motion event
         this.game.getSocket().emit("submitTurn", {
             sessionId: this.game.getMatchMetaData()!.matchId,
@@ -329,6 +351,19 @@ export class GridManager {
                 },
             },
         });
+    }
+
+    showWaitingText() {
+        if (this.waitingText) {
+            this.waitingText.setPosition(512, 384); // Center of the screen
+            this.waitingText.setVisible(true);
+        }
+    }
+
+    hideWaitingText() {
+        if (this.waitingText) {
+            this.waitingText.setVisible(false);
+        }
     }
 
     updateHealthBars() {
