@@ -12,6 +12,7 @@ export class Boot extends Scene {
 
         this.load.image("main_screen", "assets/main_screen.jpg");
         this.load.image("wizard_1", "assets/wizards/1.png");
+        this.load.image("wizard_2", "assets/wizards/2.png");
         this.load.image("construction", "assets/construction.png");
         this.load.image("mage", "assets/wizards/1.png");
 

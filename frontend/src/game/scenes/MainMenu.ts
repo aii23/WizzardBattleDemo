@@ -1,5 +1,6 @@
 import { GameObjects, Scene } from "phaser";
 import { EventBus } from "../EventBus";
+import { Configuration } from "./WizardConfig/Configurations";
 
 export class MainMenu extends Scene {
     background: GameObjects.Image;
@@ -36,24 +37,27 @@ export class MainMenu extends Scene {
         });
 
         // Create "Wizard Configuration" button
-        const wizardConfigButton = this.add
-            .text(512, 400, "Wizard Configuration", {
-                font: "32px Arial",
-                color: "#fff",
-            })
-            .setOrigin(0.5)
-            .setInteractive();
+        // const wizardConfigButton = this.add
+        //     .text(512, 400, "Wizard Configuration", {
+        //         font: "32px Arial",
+        //         color: "#fff",
+        //     })
+        //     .setOrigin(0.5)
+        //     .setInteractive();
 
-        wizardConfigButton.on("pointerover", () => {
-            wizardConfigButton.setStyle({ fill: "#f39c12" });
-        });
-        wizardConfigButton.on("pointerout", () => {
-            wizardConfigButton.setStyle({ fill: "#fff" });
-        });
-        wizardConfigButton.on("pointerdown", () => {
-            // Switch to the wizard configuration scene
-            this.scene.start("WizardConfig");
-        });
+        // wizardConfigButton.on("pointerover", () => {
+        //     wizardConfigButton.setStyle({ fill: "#f39c12" });
+        // });
+        // wizardConfigButton.on("pointerout", () => {
+        //     wizardConfigButton.setStyle({ fill: "#fff" });
+        // });
+        // wizardConfigButton.on("pointerdown", () => {
+        //     // Switch to the wizard configuration scene
+        //     this.scene.start("WizardConfig");
+        // });
+
+        const configContainer = new Configuration(this, 0, 400);
+        this.add.existing(configContainer);
 
         EventBus.emit("current-scene-ready", this);
     }
