@@ -13,6 +13,7 @@ export class UserState {
     userMap: MapStructure;
     userPosition: Position;
     userHealth: number;
+    userWizardId: number;
 
     private constructor() {
         this.userSpells = allSpells.slice(0, 3);
@@ -21,6 +22,7 @@ export class UserState {
         };
         this.userPosition = new Position(2, 2);
         this.userHealth = 100;
+        this.userWizardId = 1;
     }
 
     static getInstance(): UserState {
@@ -33,6 +35,7 @@ export class UserState {
     getData(playerId: string): MatchPlayerData {
         return {
             playerId,
+            wizardId: this.userWizardId,
             spells: this.userSpells,
             mapStructure: this.userMap,
             playerPosition: this.userPosition,

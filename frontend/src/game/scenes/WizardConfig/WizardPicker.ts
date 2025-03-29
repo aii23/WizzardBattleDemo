@@ -1,6 +1,11 @@
 import { GameObjects, Scene } from "phaser";
+import { UserState } from "../../state/UserState";
 
-export class WizardOption extends GameObjects.Image {
+const state = UserState.getInstance();
+
+export class WizardOption extends GameObjects.Container {
+    private wizardImage: GameObjects.Image;
+    private borderRect: GameObjects.Rectangle;
     wizardId: number;
     isSelected: boolean;
 
@@ -9,48 +14,69 @@ export class WizardOption extends GameObjects.Image {
         x: number,
         y: number,
         wizardId: number,
+        isSelected: boolean,
         onSelect: (wizardId: number) => void
     ) {
-        console.log("In wizard option");
-        super(scene, x, y, `wizard_${wizardId}`);
-        this.setOrigin(0, 0);
-        this.wizardId = wizardId;
-        this.isSelected = false;
-        this.setDisplaySize(150, 150);
+        super(scene, x, y);
         scene.add.existing(this);
-        this.setInteractive();
+
+        this.wizardId = wizardId;
+        this.isSelected = isSelected;
+
+        // Create border rectangle
+        this.borderRect = scene.add.rectangle(50, 50, 100, 100, 0x00ff00);
+        this.borderRect.setStrokeStyle(4, 0x00ff00);
+        this.borderRect.setFillStyle(0x00ff00, 0);
+        this.borderRect.setVisible(isSelected);
+        this.add(this.borderRect);
+
+        // Create wizard image
+        this.wizardImage = scene.add.image(0, 0, `wizard_${wizardId}`);
+        this.wizardImage.setOrigin(0, 0);
+        this.wizardImage.setDisplaySize(100, 100);
+        this.add(this.wizardImage);
+
+        // Make the container interactive
+        this.setInteractive(
+            new Phaser.Geom.Rectangle(0, 0, 100, 100),
+            Phaser.Geom.Rectangle.Contains
+        );
 
         // Optional: add a hover effect
         this.on("pointerover", () => {
             if (!this.isSelected) {
-                this.setTint(0xffaa00);
+                this.wizardImage.setTint(0xffaa00);
             }
         });
         this.on("pointerout", () => {
             if (!this.isSelected) {
-                this.clearTint();
+                this.wizardImage.clearTint();
             }
         });
 
         this.on("pointerdown", () => {
-            this.toggleSelection();
-            onSelect(this.wizardId);
+            if (!this.isSelected) {
+                this.toggleSelection();
+                onSelect(this.wizardId);
+            }
         });
     }
 
     toggleSelection(): void {
         this.isSelected = !this.isSelected;
+        this.wizardImage.clearTint();
         if (this.isSelected) {
-            this.setTint(0x00ff00);
+            // this.wizardImage.setTint(0x00ff00);
+            this.borderRect.setVisible(true);
         } else {
-            this.clearTint();
+            // this.wizardImage.clearTint();
+            this.borderRect.setVisible(false);
         }
     }
 }
 
 export class WizardPicker extends GameObjects.Container {
     private options: WizardOption[];
-    private selectedWizardId: number | null = null;
 
     constructor(scene: Scene, x: number, y: number) {
         super(scene, x, y);
@@ -67,6 +93,7 @@ export class WizardPicker extends GameObjects.Container {
                 index * spacing,
                 0,
                 wizardId,
+                wizardId === state.userWizardId,
                 (selectedId) => this.handleWizardSelection(selectedId)
             );
             this.options.push(option);
@@ -75,22 +102,18 @@ export class WizardPicker extends GameObjects.Container {
     }
 
     private handleWizardSelection(wizardId: number): void {
+        console.log("In handle wizard selection ", wizardId);
         // Deselect previous option if any
-        if (this.selectedWizardId !== null) {
-            const previousOption = this.options.find(
-                (opt) => opt.wizardId === this.selectedWizardId
-            );
-            if (previousOption) {
-                previousOption.toggleSelection();
-            }
+        const previousOption = this.options.find(
+            (opt) => opt.wizardId === state.userWizardId
+        );
+        console.log("Previous option ", previousOption);
+        if (previousOption) {
+            previousOption.toggleSelection();
         }
 
         // Select new option
-        this.selectedWizardId = wizardId;
-    }
-
-    getSelectedWizardId(): number | null {
-        return this.selectedWizardId;
+        UserState.getInstance().userWizardId = wizardId;
     }
 }
 

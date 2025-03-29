@@ -53,6 +53,7 @@ describe("MatchmakingService", () => {
     it("should add player to queue when no opponent is available", () => {
       const matchData: MatchPlayerData = {
         playerId: "player1",
+        wizardId: 1,
         spells: [],
         mapStructure: {
           matrix: [[TileType.VALLEY]],
@@ -69,6 +70,7 @@ describe("MatchmakingService", () => {
     it("should match players when opponent is available", () => {
       const matchData1: MatchPlayerData = {
         playerId: "player1",
+        wizardId: 1,
         spells: [],
         mapStructure: {
           matrix: [[TileType.VALLEY]],
@@ -78,6 +80,7 @@ describe("MatchmakingService", () => {
       };
       const matchData2: MatchPlayerData = {
         playerId: "player2",
+        wizardId: 1,
         spells: [],
         mapStructure: {
           matrix: [[TileType.ROCK]],
@@ -117,6 +120,7 @@ describe("MatchmakingService", () => {
     it("should remove player from queue", () => {
       const matchData: MatchPlayerData = {
         playerId: "player1",
+        wizardId: 1,
         spells: [],
         mapStructure: {
           matrix: [[TileType.VALLEY]],
@@ -142,6 +146,7 @@ describe("MatchmakingService", () => {
     it("should handle multiple players in queue correctly", () => {
       const matchData1: MatchPlayerData = {
         playerId: "player1",
+        wizardId: 1,
         spells: [],
         mapStructure: {
           matrix: [[TileType.VALLEY]],
@@ -151,6 +156,7 @@ describe("MatchmakingService", () => {
       };
       const matchData2: MatchPlayerData = {
         playerId: "player2",
+        wizardId: 1,
         spells: [],
         mapStructure: {
           matrix: [[TileType.ROCK]],
@@ -160,6 +166,7 @@ describe("MatchmakingService", () => {
       };
       const matchData3: MatchPlayerData = {
         playerId: "player3",
+        wizardId: 1,
         spells: [],
         mapStructure: {
           matrix: [[TileType.WATER]],

@@ -246,7 +246,7 @@ export class GridManager {
             this.game.getTileSize() / 2;
 
         const mage = this.game.add
-            .image(mageX, mageY, "mage")
+            .image(mageX, mageY, `wizard_${data.wizardId}`)
             .setDisplaySize(
                 this.game.getTileSize() * 0.8,
                 this.game.getTileSize() * 0.8
@@ -418,7 +418,8 @@ export class GridManager {
                 .list.find(
                     (obj) =>
                         obj instanceof Phaser.GameObjects.Image &&
-                        obj.texture.key === "mage"
+                        obj.texture.key ===
+                            `wizard_${this.game.getPlayerData()?.wizardId}`
                 ) as Phaser.GameObjects.Image;
 
             if (playerMageSprite) {
@@ -442,7 +443,8 @@ export class GridManager {
                 .list.find(
                     (obj) =>
                         obj instanceof Phaser.GameObjects.Image &&
-                        obj.texture.key === "mage"
+                        obj.texture.key ===
+                            `wizard_${this.game.getOpponentData()?.wizardId}`
                 ) as Phaser.GameObjects.Image;
 
             if (opponentMageSprite) {

@@ -242,6 +242,7 @@ export class GameSessionService {
   getPublicStateForPlayer(data: MatchPlayerData): MatchPlayerData {
     return {
       playerId: data.playerId,
+      wizardId: data.wizardId,
       mapStructure: data.mapStructure,
       health: data.health,
     };
@@ -250,6 +251,7 @@ export class GameSessionService {
   getPrivateStateForPlayer(data: MatchPlayerData): MatchPlayerData {
     return {
       playerId: data.playerId,
+      wizardId: data.wizardId,
       spells: data.spells,
       mapStructure: data.mapStructure,
       playerPosition: data.playerPosition,

@@ -45,6 +45,7 @@ export interface Spell {
 export interface MatchPlayerData {
   playerId: string;
   health: number;
+  wizardId: number;
   spells?: Spell[];
   mapStructure?: MapStructure;
   playerPosition?: Position;

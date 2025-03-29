@@ -10,6 +10,7 @@ import {
 export class TransformedMatchPlayerData implements BaseMatchPlayerData {
   playerId: string;
   health: number;
+  wizardId: number;
   spells?: any[];
   mapStructure?: any;
 
