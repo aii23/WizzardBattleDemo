@@ -15,7 +15,7 @@ export class SpellTile extends Phaser.GameObjects.Image {
         y: number,
         spell: Spell,
         isPicked: boolean = false,
-        onPickCallback: (newState: boolean, spell: Spell) => void
+        onPickCallback: (newState: boolean, spell: Spell) => boolean
     ) {
         super(scene, x, y, spell.name);
         this.isPicked = isPicked;
@@ -43,8 +43,10 @@ export class SpellTile extends Phaser.GameObjects.Image {
         });
 
         this.on("pointerdown", () => {
-            this.toggleSelection();
-            onPickCallback(this.isPicked, this.spell);
+            let success = onPickCallback(!this.isPicked, this.spell);
+            if (success) {
+                this.toggleSelection();
+            }
         });
     }
 
@@ -84,7 +86,11 @@ export class SpellPicker extends Phaser.GameObjects.Container {
         this.add(this.selectionCountText);
     }
 
-    onPick(newState: boolean, spell: Spell) {
+    onPick(newState: boolean, spell: Spell): boolean {
+        if (newState && userState.userSpells.length >= maxSelectable) {
+            return false;
+        }
+
         if (newState) {
             userState.userSpells.push(spell);
         } else {
@@ -96,6 +102,8 @@ export class SpellPicker extends Phaser.GameObjects.Container {
         this.selectionCountText.setText(
             `${userState.userSpells.length}/${maxSelectable}`
         );
+
+        return true;
     }
 
     private createGrid(spells: Spell[], spacing: number, tilesPerRow: number) {

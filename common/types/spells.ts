@@ -1,3 +1,4 @@
+import { allWizards } from "../wizards";
 import {
   MatchPlayerData,
   Position,
@@ -65,7 +66,9 @@ export const allSpells: Spell[] = [
     image: "Heal.png",
     effectType: SpellEffect.FRIENDLY_EFFECT,
     effect: (castPosition: Position, player: MatchPlayerData) => {
-      player.health += 30;
+      const wizard = allWizards.find((w) => w.id === player.wizardId);
+
+      player.health = Math.min(player.health + 30, wizard?.defaultHealth);
 
       return player;
     },
