@@ -19,7 +19,7 @@ export class Game extends Scene {
     private playerContainer: GameObjects.Container;
     private opponentContainer: GameObjects.Container;
     private spellsContainer: GameObjects.Container;
-    private readonly GRID_SIZE = 4;
+    private readonly GRID_SIZE = 5;
     private readonly TILE_SIZE = 40;
     private readonly GRID_SPACING = 1;
     private playerData: MatchPlayerData | null = null;
