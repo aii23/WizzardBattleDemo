@@ -1,5 +1,6 @@
 import { GameObjects, Scene } from "phaser";
 import { UserState } from "../../state/UserState";
+import { allWizards } from "../../../../../common/wizards";
 
 const state = UserState.getInstance();
 
@@ -93,7 +94,7 @@ export class WizardPicker extends GameObjects.Container {
                 index * spacing,
                 0,
                 wizardId,
-                wizardId === state.userWizardId,
+                wizardId === state.wizard.id,
                 (selectedId) => this.handleWizardSelection(selectedId)
             );
             this.options.push(option);
@@ -105,7 +106,7 @@ export class WizardPicker extends GameObjects.Container {
         console.log("In handle wizard selection ", wizardId);
         // Deselect previous option if any
         const previousOption = this.options.find(
-            (opt) => opt.wizardId === state.userWizardId
+            (opt) => opt.wizardId === state.wizard.id
         );
         console.log("Previous option ", previousOption);
         if (previousOption) {
@@ -113,7 +114,9 @@ export class WizardPicker extends GameObjects.Container {
         }
 
         // Select new option
-        UserState.getInstance().userWizardId = wizardId;
+        UserState.getInstance().wizard = allWizards.find(
+            (w) => w.id === wizardId
+        )!;
     }
 }
 

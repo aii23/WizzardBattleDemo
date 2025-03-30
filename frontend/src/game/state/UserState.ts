@@ -6,14 +6,14 @@ import {
     Spell,
     TileType,
 } from "../../../../common/types/matchmaking.types";
+import { Wizard, allWizards } from "../../../../common/wizards";
 
 export class UserState {
     private static instance: UserState;
     userSpells: Spell[];
     userMap: MapStructure;
     userPosition: Position;
-    userHealth: number;
-    userWizardId: number;
+    wizard: Wizard;
 
     private constructor() {
         this.userSpells = allSpells.slice(0, 3);
@@ -21,8 +21,7 @@ export class UserState {
             matrix: Array(4).fill(Array(4).fill(TileType.VALLEY)),
         };
         this.userPosition = new Position(2, 2);
-        this.userHealth = 100;
-        this.userWizardId = 1;
+        this.wizard = allWizards[0];
     }
 
     static getInstance(): UserState {
@@ -35,11 +34,11 @@ export class UserState {
     getData(playerId: string): MatchPlayerData {
         return {
             playerId,
-            wizardId: this.userWizardId,
+            wizardId: this.wizard.id,
             spells: this.userSpells,
             mapStructure: this.userMap,
             playerPosition: this.userPosition,
-            health: this.userHealth,
+            health: this.wizard.defaultHealth,
         };
     }
 }

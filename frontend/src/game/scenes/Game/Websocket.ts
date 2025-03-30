@@ -36,6 +36,7 @@ export class WebSocketManager {
 
         if (data.winners.length === 0) {
             this.game.setGameOver("Draw");
+            return;
         }
 
         if (data.winners.includes(this.game.getPlayerData()?.playerId!)) {

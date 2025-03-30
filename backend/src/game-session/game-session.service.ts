@@ -6,6 +6,7 @@ import {
   UserTurn,
 } from "../../../common/types/matchmaking.types";
 import { allSpells } from "../../../common/types/spells";
+import { allWizards } from "../../../common/wizards";
 
 interface GameSession {
   id: string;
@@ -240,12 +241,22 @@ export class GameSessionService {
   }
 
   getPublicStateForPlayer(data: MatchPlayerData): MatchPlayerData {
-    return {
+    const wizard = allWizards.find((w) => w.id === data.wizardId);
+
+    const publicFields = wizard?.publicFields || [];
+
+    const publicState = {
       playerId: data.playerId,
       wizardId: data.wizardId,
       mapStructure: data.mapStructure,
       health: data.health,
     };
+
+    publicFields.forEach((field) => {
+      publicState[field] = data[field];
+    });
+
+    return publicState;
   }
 
   getPrivateStateForPlayer(data: MatchPlayerData): MatchPlayerData {

@@ -1,6 +1,7 @@
 import { GameObjects } from "phaser";
 import { MatchPlayerData, Position, TileType } from "@/matchmaking.types";
 import { Game } from "./Game";
+import { allWizards } from "../../../../../common/wizards";
 
 interface GridTile {
     x: number;
@@ -177,6 +178,10 @@ export class GridManager {
         ) => {
             if (!playerData) return;
 
+            const wizard = allWizards.find(
+                (w) => w.id === playerData.wizardId
+            )!;
+
             // Background (gray)
             const bg = this.game.add
                 .rectangle(
@@ -194,7 +199,8 @@ export class GridManager {
                 .rectangle(
                     -this.game.getHealthBarWidth() / 2,
                     0,
-                    this.game.getHealthBarWidth() * (playerData.health / 100),
+                    this.game.getHealthBarWidth() *
+                        (playerData.health / wizard?.defaultHealth),
                     this.game.getHealthBarHeight(),
                     0x00ff00
                 )
@@ -371,6 +377,9 @@ export class GridManager {
 
         console.log("updateHealthBars");
         console.log(this.playerHealthBar.list);
+        const wizard = allWizards.find(
+            (w) => w.id === this.game.getPlayerData()!.wizardId
+        )!;
 
         // Update player health bar
         const playerHealthBar = this.playerHealthBar
@@ -380,11 +389,15 @@ export class GridManager {
         if (playerHealthBar && playerHealthText) {
             playerHealthBar.width =
                 this.game.getHealthBarWidth() *
-                (this.game.getPlayerData()!.health / 100);
+                (this.game.getPlayerData()!.health / wizard?.defaultHealth);
             playerHealthText.setText(
-                `${this.game.getPlayerData()!.health}/100`
+                `${this.game.getPlayerData()!.health}/${wizard?.defaultHealth}`
             );
         }
+
+        const opponentWizard = allWizards.find(
+            (w) => w.id === this.game.getOpponentData()!.wizardId
+        )!;
 
         // Update opponent health bar
         const opponentHealthBar = this.opponentHealthBar
@@ -394,9 +407,12 @@ export class GridManager {
         if (opponentHealthBar && opponentHealthText) {
             opponentHealthBar.width =
                 this.game.getHealthBarWidth() *
-                (this.game.getOpponentData()!.health / 100);
+                (this.game.getOpponentData()!.health /
+                    opponentWizard?.defaultHealth);
             opponentHealthText.setText(
-                `${this.game.getOpponentData()!.health}/100`
+                `${this.game.getOpponentData()!.health}/${
+                    opponentWizard?.defaultHealth
+                }`
             );
         }
     }
