@@ -1,4 +1,7 @@
-import { GameOverResponse, NextRoundResponse } from "@/matchmaking.types";
+import {
+    GameOverResponse,
+    NextRoundResponse,
+} from "../../../../../common/types/matchmaking.types";
 import { Game } from "./Game";
 import { GridManager } from "./Grid";
 

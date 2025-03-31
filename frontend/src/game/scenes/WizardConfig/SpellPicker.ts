@@ -2,7 +2,7 @@ import { maxSelectable } from "@/game/constants/common";
 import { UserState } from "@/game/state/UserState";
 import { Scene } from "phaser";
 import { Spell } from "../../../../../common/types/matchmaking.types";
-import { allSpells } from "@/spells";
+import { allSpells } from "../../../../../common/types/spells";
 const userState = UserState.getInstance();
 
 export class SpellTile extends Phaser.GameObjects.Image {

@@ -1,5 +1,9 @@
 import { GameObjects } from "phaser";
-import { MatchPlayerData, Position, TileType } from "@/matchmaking.types";
+import {
+    MatchPlayerData,
+    Position,
+    TileType,
+} from "../../../../../common/types/matchmaking.types";
 import { Game } from "./Game";
 import { allWizards } from "../../../../../common/wizards";
 

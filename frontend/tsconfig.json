@@ -13,8 +13,9 @@
     "jsx": "preserve",
     "incremental": true,
     "strictPropertyInitialization": false,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*", "../common/types/*"]
+      "@/*": ["./src/*", "../common/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../common/types/**/*.ts"],

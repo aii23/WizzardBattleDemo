@@ -2,7 +2,7 @@ import { EventBus } from "../EventBus";
 import { GameObjects, Scene } from "phaser";
 import { io, Socket } from "socket.io-client";
 import { UserState } from "../state/UserState";
-import { MatchFoundResponse, MatchPlayerData } from "@/matchmaking.types";
+import { MatchFoundResponse } from "../../../../common/types/matchmaking.types";
 
 const userState = UserState.getInstance();
 

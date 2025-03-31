@@ -1,5 +1,5 @@
 import { GameObjects, Scene } from "phaser";
-import { TileType } from "@/matchmaking.types";
+import { TileType } from "../../../../../common/types/matchmaking.types";
 import { UserState } from "../../state/UserState";
 
 const userState = UserState.getInstance();

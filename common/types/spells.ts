@@ -66,7 +66,7 @@ export const allSpells: Spell[] = [
     image: "Heal.png",
     effectType: SpellEffect.FRIENDLY_EFFECT,
     effect: (castPosition: Position, player: MatchPlayerData) => {
-      const wizard = allWizards.find((w) => w.id === player.wizardId);
+      const wizard = allWizards.find((w) => w.id === player.wizardId)!;
 
       player.health = Math.min(player.health + 30, wizard?.defaultHealth);
 

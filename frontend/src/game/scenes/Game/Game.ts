@@ -1,10 +1,10 @@
 import { GameObjects, Scene } from "phaser";
 import { EventBus } from "../../EventBus";
-import { MatchPlayerData, Position } from "@/matchmaking.types";
 import { Socket } from "socket.io-client";
 import { GridManager } from "./Grid";
 import { SpellManager } from "./Spells";
 import { WebSocketManager } from "./Websocket";
+import { MatchPlayerData } from "../../../../../common/types/matchmaking.types";
 
 interface MatchMetaData {
     matchId: string;

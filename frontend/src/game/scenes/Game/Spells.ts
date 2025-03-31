@@ -1,5 +1,9 @@
 import { GameObjects } from "phaser";
-import { MatchPlayerData, Position, SpellEffect } from "@/matchmaking.types";
+import {
+    MatchPlayerData,
+    Position,
+    SpellEffect,
+} from "../../../../../common/types/matchmaking.types";
 import { Game } from "./Game";
 
 export class SpellManager {
