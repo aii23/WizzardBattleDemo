@@ -1,4 +1,4 @@
-import { Socket } from "socket.io-client";
+// import { Socket } from "socket.io-client";
 
 export enum TileType {
   VALLEY = 0,
@@ -52,7 +52,7 @@ export interface MatchPlayerData {
 }
 
 export interface QueueEntry {
-  socket: Socket;
+  socket: any;
   matchData: MatchPlayerData;
 }
 
