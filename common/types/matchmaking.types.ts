@@ -1,4 +1,4 @@
-import { Socket } from "socket.io";
+import { Socket } from "socket.io-client";
 
 export enum TileType {
   VALLEY = 0,
