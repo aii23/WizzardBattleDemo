@@ -23,6 +23,11 @@ export class Boot extends Scene {
         this.load.image("valley", "assets/tiles/Valley.png");
         this.load.image("rock", "assets/tiles/Rock.png");
         this.load.image("water", "assets/tiles/Water.png");
+
+        this.load.spritesheet("explosion", "assets/explosion.png", {
+            frameWidth: 96,
+            frameHeight: 96,
+        });
     }
 
     create() {

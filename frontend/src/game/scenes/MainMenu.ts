@@ -7,12 +7,21 @@ export class MainMenu extends Scene {
     logo: GameObjects.Image;
     title: GameObjects.Text;
     logoTween: Phaser.Tweens.Tween | null;
-
+    explosion: GameObjects.Sprite;
     constructor() {
         super("MainMenu");
     }
 
     create() {
+        this.anims.create({
+            key: "explosion",
+            frames: this.anims.generateFrameNames("explosion", {
+                frames: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            }),
+            frameRate: 4,
+            repeat: 0,
+        });
+
         this.background = this.add.image(512, 384, "main_screen");
 
         // Create "Start Game" button as a text object

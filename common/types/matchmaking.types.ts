@@ -33,6 +33,12 @@ export class Position {
   }
 }
 
+export interface Impact {
+  playerId: string;
+  position: Position;
+  spellId: number;
+}
+
 export interface Spell {
   id: number;
   name: string;
@@ -66,6 +72,7 @@ export interface NextRoundResponse {
   sessionId: string;
   currentRound: number;
   state: MatchPlayerData[];
+  impacts: Impact[];
 }
 
 export interface SpellCastInfo {

@@ -30,6 +30,8 @@ export class WebSocketManager {
         // Reset turn submission flag
         this.game.setTurnSubmitted(false);
 
+        this.game.displayImpacts(data.impacts);
+
         // Update visual elements
         this.updateGameState();
     }

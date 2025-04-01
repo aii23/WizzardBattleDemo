@@ -4,7 +4,11 @@ import { Socket } from "socket.io-client";
 import { GridManager } from "./Grid";
 import { SpellManager } from "./Spells";
 import { WebSocketManager } from "./Websocket";
-import { MatchPlayerData } from "../../../../../common/types/matchmaking.types";
+import {
+    Impact,
+    MatchPlayerData,
+    Position,
+} from "../../../../../common/types/matchmaking.types";
 
 interface MatchMetaData {
     matchId: string;
@@ -109,6 +113,114 @@ export class Game extends Scene {
         this.socket.on("gameOver", (data) =>
             this.websocketManager.handleGameOver(data)
         );
+    }
+
+    displayImpacts(impacts: Impact[]) {
+        for (const impact of impacts) {
+            // Determine which grid to display the impact on based on playerId
+            const isOwnImpact = impact.playerId === this.playerData?.playerId;
+            const container = isOwnImpact
+                ? this.playerContainer
+                : this.opponentContainer;
+
+            // Display the impact on the appropriate grid
+            this.displayImpactOnGrid(
+                impact.position,
+                impact.spellId,
+                container
+            );
+        }
+    }
+
+    private displayImpactOnGrid(
+        gridPosition: Position,
+        spellId: number,
+        container: GameObjects.Container
+    ) {
+        // Get array of positions where explosions should be played
+        const explosionPositions = this.getExplosionPositions(
+            gridPosition,
+            spellId
+        );
+
+        // Create explosion for each position
+        explosionPositions.forEach((pos) => {
+            // Convert grid coordinates (column, row) to pixel coordinates
+            const x =
+                pos.x * (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+            const y =
+                pos.y * (this.TILE_SIZE + this.GRID_SPACING) +
+                this.TILE_SIZE / 2;
+
+            // Create impact sprite
+            const impactSprite = this.add.sprite(x, y, "impact");
+            // impactSprite.setScale(2);
+            impactSprite.setScale(0.5);
+            impactSprite.setDepth(1000);
+
+            // Play explosion animation
+            impactSprite.play("explosion", false);
+
+            // Add the impact sprite to the container
+            container.add(impactSprite);
+
+            // Destroy sprite when animation completes
+            impactSprite.once("animationcomplete", () => {
+                impactSprite.destroy();
+            });
+        });
+    }
+
+    private getExplosionPositions(
+        centerPosition: Position,
+        spellId: number
+    ): Position[] {
+        switch (spellId) {
+            case 0: // Lightning - single position
+                return [centerPosition];
+
+            case 1: // Fireball - 3x3 area
+                const positions: Position[] = [];
+                for (let dx = -2; dx <= 2; dx++) {
+                    for (let dy = -2; dy <= 2; dy++) {
+                        const x = centerPosition.x + dx;
+                        const y = centerPosition.y + dy;
+
+                        if (
+                            !(
+                                x >= 0 &&
+                                x < this.GRID_SIZE &&
+                                y >= 0 &&
+                                y < this.GRID_SIZE
+                            )
+                        ) {
+                            continue;
+                        }
+                        const pos = new Position(x, y);
+
+                        if (pos.manhattanDistance(centerPosition) <= 2) {
+                            positions.push(pos);
+                        }
+                    }
+                }
+                return positions;
+
+            case 4: // Laser - line effect
+                const laserPositions: Position[] = [];
+                // Add horizontal line
+                for (let x = 0; x < this.GRID_SIZE; x++) {
+                    laserPositions.push(new Position(x, centerPosition.y));
+                }
+                // Add vertical line
+                for (let y = 0; y < this.GRID_SIZE; y++) {
+                    laserPositions.push(new Position(centerPosition.x, y));
+                }
+                return laserPositions;
+
+            default:
+                return [centerPosition];
+        }
     }
 
     private updateOpponentDisplay() {

@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { Socket } from "socket.io";
 import {
+  Impact,
   MatchFoundResponse,
   MatchPlayerData,
+  SpellEffect,
   UserTurn,
 } from "../../../common/types/matchmaking.types";
 import { allSpells } from "../../../common/types/spells";
@@ -135,9 +137,11 @@ export class GameSessionService {
     return true;
   }
 
-  private processTurns(sessionId: string, turns: UserTurn[]): void {
+  private processTurns(sessionId: string, turns: UserTurn[]): Impact[] {
     const session = this.getSession(sessionId);
     if (!session) return;
+
+    const impacts = [];
 
     // Process movement
     for (const turn of turns) {
@@ -173,6 +177,14 @@ export class GameSessionService {
         console.log("spellCastInfo", spellCastInfo);
         console.log("targetPlayer", targetPlayer);
 
+        if (spell.effectType === SpellEffect.ENEMY_EFFECT) {
+          impacts.push({
+            playerId: spellCastInfo.targetId,
+            position: spellCastInfo.targetPosition,
+            spellId: spellCastInfo.spellId,
+          });
+        }
+
         const effectResult = spell.effect(
           spellCastInfo.targetPosition,
           targetPlayer
@@ -188,6 +200,8 @@ export class GameSessionService {
         console.log(spellCastInfo);
       }
     }
+
+    return impacts;
   }
 
   private startNextRound(sessionId: string): void {
@@ -201,7 +215,7 @@ export class GameSessionService {
     const roundTurns = sessionRounds.get(session.currentRound)!;
 
     console.log("this.processTurns(sessionId, roundTurns);", roundTurns);
-    this.processTurns(sessionId, roundTurns);
+    const impacts = this.processTurns(sessionId, roundTurns);
 
     session.currentRound++;
 
@@ -225,6 +239,7 @@ export class GameSessionService {
         sessionId,
         currentRound: session.currentRound,
         state: this.getStateForPlayer(sessionId, player.id),
+        impacts,
       });
     });
   }
