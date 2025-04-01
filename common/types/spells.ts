@@ -42,7 +42,20 @@ export const allSpells: Spell[] = [
         castPosition
       );
 
-      const damage = Math.max(0, 60 - distance * 20);
+      let damage = 0;
+      switch (distance) {
+        case 0:
+          damage = 50;
+          break;
+        case 1:
+          damage = 30;
+          break;
+        case 2:
+          damage = 15;
+          break;
+        default:
+          damage = 0;
+      }
 
       player.health -= damage;
 
@@ -91,7 +104,7 @@ export const allSpells: Spell[] = [
         player.playerPosition.x === castPosition.x ||
         player.playerPosition.y === castPosition.y
       ) {
-        player.health -= 25;
+        player.health -= 35;
       }
 
       return player;
