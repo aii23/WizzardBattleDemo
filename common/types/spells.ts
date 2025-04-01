@@ -38,11 +38,13 @@ export const allSpells: Spell[] = [
         return player;
       }
 
-      if (
-        (player.playerPosition as Position).manhattanDistance(castPosition) <= 2
-      ) {
-        player.health -= 50;
-      }
+      const distance = (player.playerPosition as Position).manhattanDistance(
+        castPosition
+      );
+
+      const damage = Math.max(0, 60 - distance * 20);
+
+      player.health -= damage;
 
       return player;
     },
@@ -89,7 +91,7 @@ export const allSpells: Spell[] = [
         player.playerPosition.x === castPosition.x ||
         player.playerPosition.y === castPosition.y
       ) {
-        player.health -= 20;
+        player.health -= 25;
       }
 
       return player;

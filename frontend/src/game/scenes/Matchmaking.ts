@@ -72,7 +72,7 @@ export class Matchmaking extends Scene {
 
         // Connect to socket and start matchmaking
         // #TODO move socket to user state
-        this.socket = io("http://localhost:3030");
+        this.socket = io(process.env.NEXT_PUBLIC_SERVER_URL!);
         this.socket.on("connect", () => {
             console.log("Connected to socket");
             this.socket.emit("findMatch", userState.getData(this.socket.id!));
