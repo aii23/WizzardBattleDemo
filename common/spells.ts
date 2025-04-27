@@ -1,10 +1,11 @@
-import { allWizards } from "../wizards";
+import { allWizards } from "./wizards";
 import {
   MatchPlayerData,
   Position,
   Spell,
   SpellEffect,
-} from "./matchmaking.types";
+} from "./types/matchmaking.types";
+import { Stater, UserState } from "./stater";
 
 export const allSpells: Spell[] = [
   {
@@ -24,6 +25,13 @@ export const allSpells: Spell[] = [
       }
 
       return player;
+    },
+
+    effect2: (state: UserState, castPosition: Position) => {
+      const playerPosition = state.position;
+      if ((playerPosition as Position).equals(castPosition)) {
+        state.health -= 100;
+      }
     },
   },
   {
@@ -61,6 +69,33 @@ export const allSpells: Spell[] = [
 
       return player;
     },
+
+    effect2: (state: UserState, castPosition: Position) => {
+      const playerPosition = state.position;
+
+      console.log("playerPosition", playerPosition);
+      console.log(playerPosition as Position);
+      const distance = (playerPosition as Position).manhattanDistance(
+        castPosition
+      );
+
+      let damage = 0;
+      switch (distance) {
+        case 0:
+          damage = 50;
+          break;
+        case 1:
+          damage = 30;
+          break;
+        case 2:
+          damage = 15;
+          break;
+        default:
+          damage = 0;
+      }
+
+      state.health -= damage;
+    },
   },
   {
     id: 2,
@@ -72,6 +107,10 @@ export const allSpells: Spell[] = [
       player.playerPosition = castPosition;
 
       return player;
+    },
+
+    effect2: (state: UserState, castPosition: Position) => {
+      state.position = castPosition;
     },
   },
   {
@@ -86,6 +125,11 @@ export const allSpells: Spell[] = [
       player.health = Math.min(player.health + 30, wizard?.defaultHealth);
 
       return player;
+    },
+
+    effect2: (state: UserState, castPosition: Position) => {
+      // Todo: Add max health check
+      state.health += 30;
     },
   },
   {
@@ -108,6 +152,15 @@ export const allSpells: Spell[] = [
       }
 
       return player;
+    },
+    effect2: (state: UserState, castPosition: Position) => {
+      const playerPosition = state.position;
+      if (
+        playerPosition.x === castPosition.x ||
+        playerPosition.y === castPosition.y
+      ) {
+        state.health -= 35;
+      }
     },
   },
 ];

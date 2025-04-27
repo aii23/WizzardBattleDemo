@@ -1,4 +1,4 @@
-import { allSpells } from "../../../../common/types/spells";
+import { allSpells } from "../../../../common/spells";
 import {
     MapStructure,
     MatchPlayerData,

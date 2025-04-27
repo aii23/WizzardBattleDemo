@@ -347,20 +347,39 @@ export class GridManager {
         // Set turn as submitted
         this.game.setTurnSubmitted(true);
 
-        // Emit motion event
-        this.game.getSocket().emit("submitTurn", {
-            sessionId: this.game.getMatchMetaData()!.matchId,
-            turnData: {
-                playerId: this.game.getPlayerData()!.playerId,
-                spellCastInfo: [],
-                moveInfo: {
-                    to: {
-                        x: targetX,
-                        y: targetY,
-                    },
-                },
-            },
-        });
+        // Emit motion event (old)
+        // this.game.getSocket().emit("submitTurn", {
+        //     sessionId: this.game.getMatchMetaData()!.matchId,
+        //     turnData: {
+        //         playerId: this.game.getPlayerData()!.playerId,
+        //         spellCastInfo: [],
+        //         moveInfo: {
+        //             to: {
+        //                 x: targetX,
+        //                 y: targetY,
+        //             },
+        //         },
+        //     },
+        // });
+
+        console.log("Sending actions");
+        // Emit motion event (new)
+        // this.game.getSocket().emit("SendActions", {
+        //     sessionId: this.game.getMatchMetaData()!.matchId,
+        //     turnData: {
+        //         playerId: this.game.getPlayerData()!.playerId,
+        //         actions: [
+        //             {
+        //                 spellId: 0,
+        //                 position: {
+        //                     x: 0,
+        //                     y: 0,
+        //                 },
+        //             },
+        //         ],
+        //     },
+        // });
+        this.game.nextPosition = new Position(targetX, targetY);
     }
 
     showWaitingText() {

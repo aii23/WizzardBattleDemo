@@ -8,7 +8,9 @@ import {
     Impact,
     MatchPlayerData,
     Position,
+    UserTurn,
 } from "../../../../../common/types/matchmaking.types";
+import { Action, ActionPack, Stater, UserState } from "@/stater";
 
 interface MatchMetaData {
     matchId: string;
@@ -26,13 +28,17 @@ export class Game extends Scene {
     private readonly GRID_SIZE = 5;
     private readonly TILE_SIZE = 40;
     private readonly GRID_SPACING = 1;
-    private playerData: MatchPlayerData | null = null;
-    private opponentData: MatchPlayerData | null = null;
-    private isInitialized: boolean = false;
+    playerData: MatchPlayerData | null = null;
+    opponentData: MatchPlayerData | null = null;
+    isInitialized: boolean = false;
     private readonly HEALTH_BAR_WIDTH = 160;
     private readonly HEALTH_BAR_HEIGHT = 20;
     private turnSubmitted: boolean = false;
     private gameOverText: GameObjects.Text | null = null;
+    stater: Stater;
+
+    roundActions: ActionPack[] = [];
+    nextPosition: Position | null = null;
 
     gridManager: GridManager;
     private spellManager: SpellManager;
@@ -54,6 +60,21 @@ export class Game extends Scene {
         this.playerData = data.playerData;
         this.opponentData = data.opponentData;
         this.isInitialized = true;
+
+        this.stater = new Stater(
+            {
+                map: this.playerData.mapStructure!,
+                health: this.playerData.health,
+                skillsInfo: this.playerData.spells!,
+                position: new Position(
+                    this.playerData.playerPosition!.x,
+                    this.playerData.playerPosition!.y
+                ),
+            } as UserState,
+            this.matchMetaData.matchId,
+            this.playerData.wizardId,
+            this.playerData.playerId
+        );
     }
 
     create() {
@@ -113,12 +134,23 @@ export class Game extends Scene {
         this.socket.on("gameOver", (data) =>
             this.websocketManager.handleGameOver(data)
         );
+
+        this.socket.on("submittedActions", (data) => {
+            console.log("submittedActions", data);
+            this.websocketManager.handleSubmittedActions(data);
+        });
+
+        this.socket.on("nextRoundV2", (data) => {
+            console.log("nextRoundV2", data);
+            this.websocketManager.handleNextRoundV2(data);
+        });
     }
 
-    displayImpacts(impacts: Impact[]) {
+    displayImpacts(impacts: Action[]) {
+        console.log("displayImpacts", impacts);
         for (const impact of impacts) {
             // Determine which grid to display the impact on based on playerId
-            const isOwnImpact = impact.playerId === this.playerData?.playerId;
+            const isOwnImpact = impact.target === this.playerData?.playerId;
             const container = isOwnImpact
                 ? this.playerContainer
                 : this.opponentContainer;
@@ -385,6 +417,26 @@ export class Game extends Scene {
             this.gameOverText.destroy();
             this.gameOverText = null;
         }
+    }
+
+    processSubmittedActions(actions: ActionPack[]) {
+        console.log("Processing submitted actions:", actions);
+        this.roundActions.push(...actions);
+        for (const action of actions) {
+            let playerActions = new ActionPack(
+                action.actions.filter(
+                    (a) => a.target == this.playerData?.playerId
+                )
+            );
+            this.stater.applyActions(playerActions);
+        }
+        this.socket.emit("updatePublicState", {
+            sessionId: this.matchMetaData!.matchId,
+            state: this.stater.getPublicState(),
+        });
+
+        this.nextPosition = null;
+        this.turnSubmitted = false;
     }
 }
 

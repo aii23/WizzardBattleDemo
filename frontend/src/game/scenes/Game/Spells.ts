@@ -5,6 +5,7 @@ import {
     SpellEffect,
 } from "../../../../../common/types/matchmaking.types";
 import { Game } from "./Game";
+import { Action, ActionPack } from "@/stater";
 
 export class SpellManager {
     private selectedSpell: any = null;
@@ -230,21 +231,38 @@ export class SpellManager {
         this.game.setTurnSubmitted(true);
         this.game.gridManager.showWaitingText();
 
-        this.game.getSocket().emit("submitTurn", {
+        // Emit motion event (old)
+        // this.game.getSocket().emit("submitTurn", {
+        //     sessionId: this.game.getMatchMetaData()?.matchId,
+        //     turnData: {
+        //         playerId: this.game.getPlayerData()?.playerId,
+        //         moveInfo: null,
+        //         spellCastInfo: [
+        //             {
+        //                 spellId: this.selectedSpell.id,
+        //                 targetId: this.game.getPlayerData()?.playerId,
+        //                 targetPosition: new Position(x, y),
+        //             },
+        //         ],
+        //     },
+        // });
+
+        console.log("Sending actions");
+        let actionPack = new ActionPack([
+            new Action(
+                this.selectedSpell.id,
+                new Position(x, y),
+                this.game.getPlayerData()?.playerId!
+            ),
+        ]);
+
+        this.game.getSocket().emit("SendActions", {
             sessionId: this.game.getMatchMetaData()?.matchId,
             turnData: {
                 playerId: this.game.getPlayerData()?.playerId,
-                moveInfo: null,
-                spellCastInfo: [
-                    {
-                        spellId: this.selectedSpell.id,
-                        targetId: this.game.getPlayerData()?.playerId,
-                        targetPosition: new Position(x, y),
-                    },
-                ],
+                actions: actionPack,
             },
         });
-
         // Clear spell selection
         this.clearSpellSelection();
     }
@@ -372,18 +390,34 @@ export class SpellManager {
         this.game.setTurnSubmitted(true);
         this.game.gridManager.showWaitingText();
 
-        this.game.getSocket().emit("submitTurn", {
+        // Emit motion event (old)
+        // this.game.getSocket().emit("submitTurn", {
+        //     sessionId: this.game.getMatchMetaData()?.matchId,
+        //     turnData: {
+        //         playerId: this.game.getPlayerData()?.playerId,
+        //         moveInfo: null,
+        //         spellCastInfo: [
+        //             {
+        //                 spellId: this.selectedSpell.id,
+        //                 targetId: this.game.getOpponentData()?.playerId,
+        //                 targetPosition: new Position(x, y),
+        //             },
+        //         ],
+        //     },
+        // });
+
+        console.log("Sending actions");
+        this.game.getSocket().emit("SendActions", {
             sessionId: this.game.getMatchMetaData()?.matchId,
             turnData: {
                 playerId: this.game.getPlayerData()?.playerId,
-                moveInfo: null,
-                spellCastInfo: [
-                    {
-                        spellId: this.selectedSpell.id,
-                        targetId: this.game.getOpponentData()?.playerId,
-                        targetPosition: new Position(x, y),
-                    },
-                ],
+                actions: new ActionPack([
+                    new Action(
+                        this.selectedSpell.id,
+                        new Position(x, y),
+                        this.game.getOpponentData()?.playerId!
+                    ),
+                ]),
             },
         });
 

@@ -4,11 +4,14 @@ import {
   Impact,
   MatchFoundResponse,
   MatchPlayerData,
+  NextRoundResponseV2,
   SpellEffect,
   UserTurn,
 } from "../../../common/types/matchmaking.types";
-import { allSpells } from "../../../common/types/spells";
+import { allSpells } from "../../../common/spells";
 import { allWizards } from "../../../common/wizards";
+import { ActionPack } from "../../../common/stater";
+import { TransformedUserTurnV2 } from "types/matchmaking.types";
 
 interface GameSession {
   id: string;
@@ -21,6 +24,14 @@ interface GameSession {
 export class GameSessionService {
   private activeSessions: Map<string, GameSession> = new Map();
   private socketToSession: Map<string, string> = new Map(); // Maps socket ID to session ID
+
+  // sessionId -> turnId -> actions[]
+  private actions: Map<string, Map<number, ActionPack[]>> = new Map();
+
+  // sessionId -> roundId -> Number of submitted actions
+  private submittedActions: Map<string, Map<number, number>> = new Map();
+
+  private publicState: Map<string, Map<number, MatchPlayerData[]>> = new Map();
 
   // sessionId -> roundId -> turns
   private turns: Map<string, Map<number, UserTurn[]>> = new Map();
@@ -244,6 +255,21 @@ export class GameSessionService {
     });
   }
 
+  startNextRoundV2(sessionId: string): void {
+    console.log("startNextRoundV2", sessionId);
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    session.players.forEach((player) => {
+      player.emit("nextRoundV2", {
+        sessionId,
+        currentRound: session.currentRound,
+        state: this.publicState.get(sessionId).get(session.currentRound),
+      } satisfies NextRoundResponseV2);
+    });
+    session.currentRound++;
+  }
+
   endSession(sessionId: string): void {
     const session = this.activeSessions.get(sessionId);
     if (session) {
@@ -252,6 +278,19 @@ export class GameSessionService {
         this.socketToSession.delete(player.id);
       });
       this.activeSessions.delete(sessionId);
+    }
+  }
+
+  endSessionV2(sessionId: string, alivePlayers: MatchPlayerData[]): void {
+    const session = this.activeSessions.get(sessionId);
+
+    if (session) {
+      session.players.forEach((player) => {
+        player.emit("gameOver", {
+          sessionId,
+          winners: alivePlayers.map((data) => data.playerId),
+        });
+      });
     }
   }
 
@@ -298,5 +337,82 @@ export class GameSessionService {
     });
 
     return state;
+  }
+
+  private turnsSubmitted(sessionId: string): void {
+    console.log("turnsSubmitted", sessionId);
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    const allActions =
+      this.actions.get(sessionId)?.get(session.currentRound) || [];
+
+    for (const player of session.players) {
+      player.emit("submittedActions", {
+        sessionId,
+        currentRound: session.currentRound,
+        actions: allActions,
+      });
+    }
+  }
+
+  addActions(sessionId: string, playerId: string, turn: TransformedUserTurnV2) {
+    console.log("addActions", sessionId, playerId, turn);
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    let actionsData = this.actions.get(sessionId);
+    if (!actionsData) {
+      actionsData = new Map();
+    }
+
+    let currentActions = actionsData.get(session.currentRound);
+    if (!currentActions) {
+      currentActions = [];
+    }
+
+    currentActions.push(turn.actions);
+
+    actionsData.set(session.currentRound, currentActions);
+    this.actions.set(sessionId, actionsData);
+
+    console.log("currentActions", currentActions);
+
+    if (currentActions.length === session.players.length) {
+      this.turnsSubmitted(sessionId);
+    }
+  }
+
+  updatePublicState(
+    sessionId: string,
+    playerId: string,
+    state: MatchPlayerData
+  ) {
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    let roundState = this.publicState.get(sessionId);
+
+    if (!roundState) {
+      roundState = new Map();
+    }
+
+    const publicState = roundState.get(session.currentRound) || [];
+
+    publicState.push(state);
+
+    roundState.set(session.currentRound, publicState);
+
+    this.publicState.set(sessionId, roundState);
+
+    if (publicState.length === session.players.length) {
+      const alivePlayers = publicState.filter((state) => state.health > 0);
+      if (alivePlayers.length < 2) {
+        this.endSessionV2(sessionId, alivePlayers);
+      } else {
+        this.startNextRoundV2(sessionId);
+      }
+      // this.turnsSubmitted(sessionId);
+    }
   }
 }

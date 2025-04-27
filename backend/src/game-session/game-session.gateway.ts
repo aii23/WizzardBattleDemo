@@ -8,7 +8,10 @@ import {
 import { Server, Socket } from "socket.io";
 import { GameSessionService } from "./game-session.service";
 import { UserTurn } from "../../../common/types/matchmaking.types";
-import { TransformedUserTurn } from "../types/matchmaking.types";
+import {
+  TransformedUserTurn,
+  TransformedUserTurnV2,
+} from "../types/matchmaking.types";
 import { plainToClass } from "class-transformer";
 
 @WebSocketGateway({
@@ -33,6 +36,7 @@ export class GameSessionGateway
     // The disconnect is now handled in the GameSessionService
   }
 
+  /*
   @SubscribeMessage("submitTurn")
   handleTurn(client: Socket, payload: { sessionId: string; turnData: any }) {
     const { sessionId, turnData } = payload;
@@ -68,5 +72,32 @@ export class GameSessionGateway
     }
 
     return { success };
+  }
+  */
+
+  // Client side state managment
+  @SubscribeMessage("SendActions")
+  sendActions(client: Socket, payload: { sessionId: string; turnData: any }) {
+    const { sessionId, turnData } = payload;
+
+    console.log(turnData);
+
+    // Transform the incoming turn data
+    const transformedTurn = plainToClass(TransformedUserTurnV2, turnData);
+
+    console.log(transformedTurn);
+
+    // Add the action to the actions map
+    this.gameSessionService.addActions(sessionId, client.id, transformedTurn);
+  }
+
+  @SubscribeMessage("updatePublicState")
+  updatePublicState(
+    client: Socket,
+    payload: { sessionId: string; state: any }
+  ) {
+    const { sessionId, state } = payload;
+
+    this.gameSessionService.updatePublicState(sessionId, client.id, state);
   }
 }

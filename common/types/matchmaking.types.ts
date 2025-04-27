@@ -1,5 +1,7 @@
 // import { Socket } from "socket.io-client";
 
+import { ActionPack, Stater, UserState } from "../stater";
+
 export enum TileType {
   VALLEY = 0,
   ROCK = 1,
@@ -46,6 +48,7 @@ export interface Spell {
   image: string;
   effectType: SpellEffect;
   effect: (castPosition: Position, player: MatchPlayerData) => MatchPlayerData;
+  effect2: (state: UserState, castPosition: Position) => void;
 }
 
 export interface MatchPlayerData {
@@ -75,6 +78,12 @@ export interface NextRoundResponse {
   impacts: Impact[];
 }
 
+export interface NextRoundResponseV2 {
+  sessionId: string;
+  currentRound: number;
+  state: MatchPlayerData[];
+}
+
 export interface SpellCastInfo {
   spellId: number;
   targetId: string;
@@ -94,4 +103,10 @@ export interface UserTurn {
 export interface GameOverResponse {
   sessionId: string;
   winners: string[];
+}
+
+export interface SubmittedActionsResponse {
+  sessionId: string;
+  currentRound: number;
+  actions: ActionPack[];
 }
