@@ -161,9 +161,11 @@ export class Stater extends Signer {
 
   applyActions(actions: ActionPack) {
     console.log("actions", actions as ActionPack);
-    let newState = structuredClone(
-      this.stateHistory[this.stateHistory.length - 1]
-    );
+    // let newState = structuredClone(
+    //   this.stateHistory[this.stateHistory.length - 1]
+    // );
+    // TODO: Make copy of object
+    let newState = this.stateHistory[this.stateHistory.length - 1];
 
     newState = new UserState(
       newState.map,

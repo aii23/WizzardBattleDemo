@@ -6,6 +6,7 @@ import {
 } from "../../../../../common/types/matchmaking.types";
 import { Game } from "./Game";
 import { allWizards } from "../../../../../common/wizards";
+import { Action, ActionPack } from "@/stater";
 
 interface GridTile {
     x: number;
@@ -364,22 +365,20 @@ export class GridManager {
 
         console.log("Sending actions");
         // Emit motion event (new)
-        // this.game.getSocket().emit("SendActions", {
-        //     sessionId: this.game.getMatchMetaData()!.matchId,
-        //     turnData: {
-        //         playerId: this.game.getPlayerData()!.playerId,
-        //         actions: [
-        //             {
-        //                 spellId: 0,
-        //                 position: {
-        //                     x: 0,
-        //                     y: 0,
-        //                 },
-        //             },
-        //         ],
-        //     },
-        // });
-        this.game.nextPosition = new Position(targetX, targetY);
+        this.game.getSocket().emit("SendActions", {
+            sessionId: this.game.getMatchMetaData()!.matchId,
+            turnData: {
+                playerId: this.game.getPlayerData()!.playerId,
+                actions: new ActionPack([
+                    new Action(
+                        0,
+                        new Position(targetX, targetY),
+                        this.game.getPlayerData()!.playerId
+                    ),
+                ]),
+            },
+        });
+        this.game.state.nextPosition = new Position(targetX, targetY);
     }
 
     showWaitingText() {
@@ -489,6 +488,26 @@ export class GridManager {
             if (opponentMageSprite) {
                 opponentMageSprite.setPosition(opponentMageX, opponentMageY);
             }
+        }
+    }
+
+    cleanup() {
+        // Clear grids
+        this.playerGrid = [];
+        this.opponentGrid = [];
+
+        // Remove health bars
+        if (this.playerHealthBar) {
+            this.playerHealthBar.removeAll(true);
+        }
+        if (this.opponentHealthBar) {
+            this.opponentHealthBar.removeAll(true);
+        }
+
+        // Remove waiting text
+        if (this.waitingText) {
+            this.waitingText.destroy();
+            this.waitingText = null;
         }
     }
 }

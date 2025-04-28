@@ -75,7 +75,10 @@ export class Matchmaking extends Scene {
         this.socket = io(process.env.NEXT_PUBLIC_SERVER_URL!);
         this.socket.on("connect", () => {
             console.log("Connected to socket");
-            this.socket.emit("findMatch", userState.getData(this.socket.id!));
+            this.socket.emit(
+                "findMatch",
+                userState.getPublicData(this.socket.id!)
+            );
         });
 
         this.socket.on("waitingForOpponent", () => {
@@ -123,9 +126,7 @@ export class Matchmaking extends Scene {
         // Start game scene
         this.scene.start("Game", {
             metaData: matchMetaData,
-            playerData: data.state.find(
-                (player) => player.playerId === this.socket.id
-            ),
+            playerData: userState.getData(this.socket.id!),
             opponentData: data.state.find(
                 (player) => player.playerId !== this.socket.id
             ),

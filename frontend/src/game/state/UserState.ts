@@ -8,6 +8,7 @@ import {
 } from "../../../../common/types/matchmaking.types";
 import { Wizard, allWizards } from "../../../../common/wizards";
 
+// TODO: Remove this. Transfer to stater
 export class UserState {
     private static instance: UserState;
     userSpells: Spell[];
@@ -36,6 +37,16 @@ export class UserState {
             spells: this.userSpells,
             mapStructure: this.userMap,
             playerPosition: this.userPosition,
+            health: this.wizard.defaultHealth,
+        };
+    }
+
+    getPublicData(playerId: string): MatchPlayerData {
+        return {
+            playerId,
+            wizardId: this.wizard.id,
+            spells: this.userSpells,
+            mapStructure: this.userMap,
             health: this.wizard.defaultHealth,
         };
     }

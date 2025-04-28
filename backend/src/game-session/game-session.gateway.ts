@@ -36,45 +36,6 @@ export class GameSessionGateway
     // The disconnect is now handled in the GameSessionService
   }
 
-  /*
-  @SubscribeMessage("submitTurn")
-  handleTurn(client: Socket, payload: { sessionId: string; turnData: any }) {
-    const { sessionId, turnData } = payload;
-
-    // Transform the incoming turn data
-    const transformedTurn = plainToClass(TransformedUserTurn, turnData);
-
-    // Validate that the client is part of this session
-    const session = this.gameSessionService.getSessionBySocketId(client.id);
-    if (!session || session.id !== sessionId) {
-      return { success: false, error: "Invalid session" };
-    }
-
-    const success = this.gameSessionService.handleTurn(
-      sessionId,
-      client.id,
-      transformedTurn
-    );
-
-    if (success) {
-      // TODO: Broadcast the turn to all players in the session
-      // const session = this.gameSessionService.getSession(sessionId);
-      // if (session) {
-      //   // Broadcast the turn to all players in the session
-      //   session.players.forEach((player) => {
-      //     player.emit("turnUpdate", {
-      //       sessionId,
-      //       currentTurn: session.currentTurn,
-      //       turnData,
-      //     });
-      //   });
-      // }
-    }
-
-    return { success };
-  }
-  */
-
   // Client side state managment
   @SubscribeMessage("SendActions")
   sendActions(client: Socket, payload: { sessionId: string; turnData: any }) {

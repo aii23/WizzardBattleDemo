@@ -54,24 +54,24 @@ export class MatchmakingService {
 
     console.log("Match found between:", player1.id, player2.id);
 
-    const firstPlayerState = this.gameSessionService.getStateForPlayer(
-      matchId,
-      player1.id
-    );
-    const secondPlayerState = this.gameSessionService.getStateForPlayer(
-      matchId,
-      player2.id
-    );
+    // const firstPlayerState = this.gameSessionService.getStateForPlayer(
+    //   matchId,
+    //   player1.id
+    // );
+    // const secondPlayerState = this.gameSessionService.getStateForPlayer(
+    //   matchId,
+    //   player2.id
+    // );
 
     const player1Response: MatchFoundResponse = {
       matchId,
       opponent: player2.id,
-      state: firstPlayerState,
+      state: [player1Data, player2Data],
     };
     const player2Response: MatchFoundResponse = {
       matchId,
       opponent: player1.id,
-      state: secondPlayerState,
+      state: [player2Data, player1Data],
     };
 
     console.log("Player 1 response:", player1Response);

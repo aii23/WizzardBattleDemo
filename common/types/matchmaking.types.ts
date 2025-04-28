@@ -47,7 +47,6 @@ export interface Spell {
   description: string;
   image: string;
   effectType: SpellEffect;
-  effect: (castPosition: Position, player: MatchPlayerData) => MatchPlayerData;
   effect2: (state: UserState, castPosition: Position) => void;
 }
 

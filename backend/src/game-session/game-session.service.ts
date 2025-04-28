@@ -114,147 +114,6 @@ export class GameSessionService {
     return sessionId ? this.getSession(sessionId) : undefined;
   }
 
-  handleTurn(sessionId: string, playerId: string, turnData: UserTurn): boolean {
-    console.log("handleTurn", sessionId, playerId, turnData);
-    const session = this.getSession(sessionId);
-    if (!session) return false;
-
-    const sessionRounds = this.turns.get(sessionId)!;
-
-    const roundTurns = sessionRounds.get(session.currentRound) || [];
-
-    if (playerId !== turnData.playerId) {
-      return false;
-    }
-
-    const playerAlreadyCommitted = roundTurns.find(
-      (turn) => turn.playerId === playerId
-    );
-    if (playerAlreadyCommitted) {
-      return false;
-    }
-
-    roundTurns.push(turnData);
-
-    sessionRounds.set(session.currentRound, roundTurns);
-
-    if (roundTurns.length === session.players.length) {
-      this.startNextRound(sessionId);
-    }
-
-    // Process turn
-    // Add your game logic here
-
-    return true;
-  }
-
-  private processTurns(sessionId: string, turns: UserTurn[]): Impact[] {
-    const session = this.getSession(sessionId);
-    if (!session) return;
-
-    const impacts = [];
-
-    // Process movement
-    for (const turn of turns) {
-      console.log("turn", turn);
-      const playerData = session.playersData.find(
-        (data) => data.playerId === turn.playerId
-      );
-      if (!playerData) continue;
-
-      if (turn.moveInfo) {
-        playerData.playerPosition = turn.moveInfo.to;
-        console.log("playerData after move", playerData);
-      }
-    }
-
-    // Process spell cast
-    for (const turn of turns) {
-      for (const spellCastInfo of turn.spellCastInfo) {
-        const spell = allSpells.find((s) => s.id === spellCastInfo.spellId);
-        if (!spell) {
-          console.error("Spell not found", spellCastInfo.spellId);
-          continue;
-        }
-
-        const targetPlayer = session.playersData.find(
-          (data) => data.playerId === spellCastInfo.targetId
-        );
-        if (!targetPlayer) {
-          console.error("Target player not found", spellCastInfo.targetId);
-          continue;
-        }
-
-        console.log("spellCastInfo", spellCastInfo);
-        console.log("targetPlayer", targetPlayer);
-
-        if (spell.effectType === SpellEffect.ENEMY_EFFECT) {
-          impacts.push({
-            playerId: spellCastInfo.targetId,
-            position: spellCastInfo.targetPosition,
-            spellId: spellCastInfo.spellId,
-          });
-        }
-
-        const effectResult = spell.effect(
-          spellCastInfo.targetPosition,
-          targetPlayer
-        );
-
-        session.playersData = session.playersData.map((data) => {
-          if (data.playerId === spellCastInfo.targetId) {
-            return effectResult;
-          }
-          return data;
-        });
-
-        console.log(spellCastInfo);
-      }
-    }
-
-    return impacts;
-  }
-
-  private startNextRound(sessionId: string): void {
-    console.log("startNextRound", sessionId);
-    const session = this.getSession(sessionId);
-    if (!session) return;
-
-    const sessionRounds = this.turns.get(sessionId)!;
-
-    // Process turns
-    const roundTurns = sessionRounds.get(session.currentRound)!;
-
-    console.log("this.processTurns(sessionId, roundTurns);", roundTurns);
-    const impacts = this.processTurns(sessionId, roundTurns);
-
-    session.currentRound++;
-
-    sessionRounds.set(session.currentRound, []);
-
-    let alivePlayers = session.playersData.filter((data) => data.health > 0);
-
-    if (alivePlayers.length <= 1) {
-      session.players.forEach((player) => {
-        player.emit("gameOver", {
-          sessionId,
-          winners: alivePlayers.map((data) => data.playerId),
-        });
-      });
-
-      return;
-    }
-
-    session.players.forEach((player) => {
-      player.emit("nextRound", {
-        sessionId,
-        currentRound: session.currentRound,
-        state: this.getStateForPlayer(sessionId, player.id),
-        impacts,
-      });
-    });
-  }
-
   startNextRoundV2(sessionId: string): void {
     console.log("startNextRoundV2", sessionId);
     const session = this.getSession(sessionId);
@@ -292,51 +151,6 @@ export class GameSessionService {
         });
       });
     }
-  }
-
-  getPublicStateForPlayer(data: MatchPlayerData): MatchPlayerData {
-    const wizard = allWizards.find((w) => w.id === data.wizardId);
-
-    const publicFields = wizard?.publicFields || [];
-
-    const publicState = {
-      playerId: data.playerId,
-      wizardId: data.wizardId,
-      mapStructure: data.mapStructure,
-      health: data.health,
-    };
-
-    publicFields.forEach((field) => {
-      publicState[field] = data[field];
-    });
-
-    return publicState;
-  }
-
-  getPrivateStateForPlayer(data: MatchPlayerData): MatchPlayerData {
-    return {
-      playerId: data.playerId,
-      wizardId: data.wizardId,
-      spells: data.spells,
-      mapStructure: data.mapStructure,
-      playerPosition: data.playerPosition,
-      health: data.health,
-    };
-  }
-
-  getStateForPlayer(sessionId: string, playerId: string): MatchPlayerData[] {
-    const session = this.getSession(sessionId);
-    if (!session) return [];
-
-    let state = session.playersData.map((data) => {
-      if (data.playerId === playerId) {
-        return this.getPrivateStateForPlayer(data);
-      }
-
-      return this.getPublicStateForPlayer(data);
-    });
-
-    return state;
   }
 
   private turnsSubmitted(sessionId: string): void {
@@ -412,7 +226,6 @@ export class GameSessionService {
       } else {
         this.startNextRoundV2(sessionId);
       }
-      // this.turnsSubmitted(sessionId);
     }
   }
 }
