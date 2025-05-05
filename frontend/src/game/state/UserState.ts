@@ -34,9 +34,9 @@ export class UserState {
         return {
             playerId,
             wizardId: this.wizard.id,
-            spells: this.userSpells,
-            mapStructure: this.userMap,
-            playerPosition: this.userPosition,
+            skillsInfo: this.userSpells,
+            map: this.userMap,
+            position: this.userPosition,
             health: this.wizard.defaultHealth,
         };
     }
@@ -45,9 +45,10 @@ export class UserState {
         return {
             playerId,
             wizardId: this.wizard.id,
-            spells: this.userSpells,
-            mapStructure: this.userMap,
+            skillsInfo: this.userSpells,
+            map: this.userMap,
             health: this.wizard.defaultHealth,
+            position: this.userPosition,
         };
     }
 

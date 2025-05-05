@@ -5,7 +5,7 @@ import {
     SpellEffect,
 } from "../../../../../common/types/matchmaking.types";
 import { Game } from "./Game";
-import { Action, ActionPack } from "@/stater";
+import { Action } from "@/stater";
 
 export class SpellManager {
     private selectedSpell: any = null;
@@ -232,13 +232,13 @@ export class SpellManager {
         this.game.gridManager.showWaitingText();
 
         console.log("Sending actions");
-        let actionPack = new ActionPack([
+        let actionPack = [
             new Action(
                 this.selectedSpell.id,
                 new Position(x, y),
                 this.game.getPlayerData()?.playerId!
             ),
-        ]);
+        ];
 
         this.game.getSocket().emit("SendActions", {
             sessionId: this.game.getMatchMetaData()?.matchId,
@@ -379,13 +379,13 @@ export class SpellManager {
             sessionId: this.game.getMatchMetaData()?.matchId,
             turnData: {
                 playerId: this.game.getPlayerData()?.playerId,
-                actions: new ActionPack([
+                actions: [
                     new Action(
                         this.selectedSpell.id,
                         new Position(x, y),
                         this.game.getOpponentData()?.playerId!
                     ),
-                ]),
+                ],
             },
         });
 

@@ -54,11 +54,11 @@ describe("MatchmakingService", () => {
       const matchData: MatchPlayerData = {
         playerId: "player1",
         wizardId: 1,
-        spells: [],
-        mapStructure: {
+        skillsInfo: [],
+        map: {
           matrix: [[TileType.VALLEY]],
         },
-        playerPosition: new Position(0, 0),
+        position: new Position(0, 0),
         health: 100,
       };
       const result = service.addToQueue(mockSocket1 as Socket, matchData);
@@ -71,21 +71,21 @@ describe("MatchmakingService", () => {
       const matchData1: MatchPlayerData = {
         playerId: "player1",
         wizardId: 1,
-        spells: [],
-        mapStructure: {
+        skillsInfo: [],
+        map: {
           matrix: [[TileType.VALLEY]],
         },
-        playerPosition: new Position(0, 0),
+        position: new Position(0, 0),
         health: 100,
       };
       const matchData2: MatchPlayerData = {
         playerId: "player2",
         wizardId: 1,
-        spells: [],
-        mapStructure: {
+        skillsInfo: [],
+        map: {
           matrix: [[TileType.ROCK]],
         },
-        playerPosition: new Position(1, 1),
+        position: new Position(1, 1),
         health: 100,
       };
 
@@ -121,11 +121,11 @@ describe("MatchmakingService", () => {
       const matchData: MatchPlayerData = {
         playerId: "player1",
         wizardId: 1,
-        spells: [],
-        mapStructure: {
+        skillsInfo: [],
+        map: {
           matrix: [[TileType.VALLEY]],
         },
-        playerPosition: new Position(0, 0),
+        position: new Position(0, 0),
         health: 100,
       };
 
@@ -147,31 +147,31 @@ describe("MatchmakingService", () => {
       const matchData1: MatchPlayerData = {
         playerId: "player1",
         wizardId: 1,
-        spells: [],
-        mapStructure: {
+        skillsInfo: [],
+        map: {
           matrix: [[TileType.VALLEY]],
         },
-        playerPosition: new Position(0, 0),
+        position: new Position(0, 0),
         health: 100,
       };
       const matchData2: MatchPlayerData = {
         playerId: "player2",
         wizardId: 1,
-        spells: [],
-        mapStructure: {
+        skillsInfo: [],
+        map: {
           matrix: [[TileType.ROCK]],
         },
-        playerPosition: new Position(1, 1),
+        position: new Position(1, 1),
         health: 100,
       };
       const matchData3: MatchPlayerData = {
         playerId: "player3",
         wizardId: 1,
-        spells: [],
-        mapStructure: {
+        skillsInfo: [],
+        map: {
           matrix: [[TileType.WATER]],
         },
-        playerPosition: new Position(2, 2),
+        position: new Position(2, 2),
         health: 100,
       };
 

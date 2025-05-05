@@ -6,7 +6,7 @@ import {
   MoveInfo as BaseMoveInfo,
   UserTurn as BaseUserTurn,
 } from "../../../common/types/matchmaking.types";
-import { ActionPack } from "../../../common/stater";
+import { Action } from "../../../common/stater";
 
 export class TransformedMatchPlayerData implements BaseMatchPlayerData {
   playerId: string;
@@ -46,6 +46,6 @@ export class TransformedUserTurn implements BaseUserTurn {
 export class TransformedUserTurnV2 {
   playerId: string;
 
-  @Type(() => ActionPack)
-  actions: ActionPack;
+  @Type(() => Action)
+  actions: Action[];
 }

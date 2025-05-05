@@ -1,8 +1,8 @@
+import { Action } from "@/stater";
 import {
     MatchPlayerData,
     Position,
 } from "../../../../common/types/matchmaking.types";
-import { ActionPack } from "@/stater";
 
 export interface MatchMetaData {
     matchId: string;
@@ -15,7 +15,7 @@ export interface GameState {
     matchMetaData: MatchMetaData | null;
     isInitialized: boolean;
     turnSubmitted: boolean;
-    roundActions: ActionPack[];
+    roundActions: Action[];
     nextPosition: Position | null;
 }
 
@@ -27,3 +27,4 @@ export interface GameUIElements {
     spellsContainer: Phaser.GameObjects.Container;
     gameOverText: Phaser.GameObjects.Text | null;
 }
+

@@ -9,7 +9,6 @@ import {
 } from "../../../../../common/types/matchmaking.types";
 import { Game } from "./Game";
 import { GridManager } from "./Grid";
-import { ActionPack } from "@/stater";
 
 export class WebSocketManager {
     constructor(private game: Game) {}
@@ -74,9 +73,7 @@ export class WebSocketManager {
     }
 
     handleSubmittedActions(data: SubmittedActionsResponse) {
-        const actions = data.actions.map((action) =>
-            plainToClass(ActionPack, action)
-        );
+        const actions = data.actions;
         this.game.processSubmittedActions(actions);
     }
 

@@ -10,7 +10,7 @@ import {
     Position,
     UserTurn,
 } from "../../../../../common/types/matchmaking.types";
-import { Action, ActionPack, Stater, UserState } from "@/stater";
+import { Action, Stater, UserState } from "@/stater";
 import { GameConfig } from "../../config/gameConfig";
 import {
     GameState,
@@ -59,26 +59,23 @@ export class Game extends Scene {
     }
 
     private initializeStater() {
-        if (
-            !this.state.playerData?.mapStructure ||
-            !this.state.playerData?.playerPosition
-        ) {
+        if (!this.state.playerData?.map || !this.state.playerData?.position) {
             throw new Error("Player data is incomplete");
         }
 
         this.stater = new Stater(
             {
-                map: this.state.playerData.mapStructure,
+                playerId: this.state.playerData.playerId,
+                wizardId: this.state.playerData.wizardId,
+                map: this.state.playerData.map,
                 health: this.state.playerData.health,
-                skillsInfo: this.state.playerData.spells!,
+                skillsInfo: this.state.playerData.skillsInfo!,
                 position: new Position(
-                    this.state.playerData.playerPosition.x,
-                    this.state.playerData.playerPosition.y
+                    this.state.playerData.position!.x,
+                    this.state.playerData.position!.y
                 ),
             } as UserState,
-            this.state.matchMetaData!.matchId,
-            this.state.playerData.wizardId,
-            this.state.playerData.playerId
+            this.state.matchMetaData!.matchId
         );
     }
 
@@ -187,7 +184,7 @@ export class Game extends Scene {
 
     private displayImpactOnGrid(
         gridPosition: Position,
-        spellId: number,
+        spellId: string,
         container: GameObjects.Container
     ) {
         // Get array of positions where explosions should be played
@@ -227,13 +224,13 @@ export class Game extends Scene {
 
     private getExplosionPositions(
         centerPosition: Position,
-        spellId: number
+        spellId: string
     ): Position[] {
         switch (spellId) {
-            case 0: // Lightning - single position
+            case "lightning": // Lightning - single position
                 return [centerPosition];
 
-            case 1: // Fireball - 3x3 area
+            case "fireball": // Fireball - 3x3 area
                 const positions: Position[] = [];
                 for (let dx = -2; dx <= 2; dx++) {
                     for (let dy = -2; dy <= 2; dy++) {
@@ -259,7 +256,7 @@ export class Game extends Scene {
                 }
                 return positions;
 
-            case 4: // Laser - line effect
+            case "laser": // Laser - line effect
                 const laserPositions: Position[] = [];
                 // Add horizontal line
                 for (let x = 0; x < this.getGridSize(); x++) {
@@ -439,17 +436,12 @@ export class Game extends Scene {
         }
     }
 
-    processSubmittedActions(actions: ActionPack[]) {
+    processSubmittedActions(actions: Action[]) {
         console.log("Processing submitted actions:", actions);
         this.state.roundActions.push(...actions);
-        for (const action of actions) {
-            let playerActions = new ActionPack(
-                action.actions.filter(
-                    (a) => a.target == this.state.playerData?.playerId
-                )
-            );
-            this.stater.applyActions(playerActions);
-        }
+
+        this.stater.applyActions(actions);
+
         this.socket.emit("updatePublicState", {
             sessionId: this.state.matchMetaData!.matchId,
             state: this.stater.getPublicState(),

@@ -10,8 +10,8 @@ import {
 } from "../../../common/types/matchmaking.types";
 import { allSpells } from "../../../common/spells";
 import { allWizards } from "../../../common/wizards";
-import { ActionPack } from "../../../common/stater";
 import { TransformedUserTurnV2 } from "types/matchmaking.types";
+import { Action } from "../../../common/stater";
 
 interface GameSession {
   id: string;
@@ -26,7 +26,7 @@ export class GameSessionService {
   private socketToSession: Map<string, string> = new Map(); // Maps socket ID to session ID
 
   // sessionId -> turnId -> actions[]
-  private actions: Map<string, Map<number, ActionPack[]>> = new Map();
+  private actions: Map<string, Map<number, Action[]>> = new Map();
 
   // sessionId -> roundId -> Number of submitted actions
   private submittedActions: Map<string, Map<number, number>> = new Map();
@@ -66,7 +66,7 @@ export class GameSessionService {
     console.log("this.activeSessions", session);
     console.log(
       "this.socketToSession",
-      session.playersData.map((data) => data.playerPosition)
+      session.playersData.map((data) => data.position)
     );
 
     return session.id;
@@ -185,7 +185,7 @@ export class GameSessionService {
       currentActions = [];
     }
 
-    currentActions.push(turn.actions);
+    currentActions.push(...turn.actions);
 
     actionsData.set(session.currentRound, currentActions);
     this.actions.set(sessionId, actionsData);

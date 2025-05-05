@@ -1,6 +1,6 @@
 // import { Socket } from "socket.io-client";
 
-import { ActionPack, Stater, UserState } from "../stater";
+import { Action, PublicState, Stater, UserState } from "../stater";
 
 export enum TileType {
   VALLEY = 0,
@@ -38,26 +38,45 @@ export class Position {
 export interface Impact {
   playerId: string;
   position: Position;
-  spellId: number;
+  spellId: string;
 }
 
 export interface Spell {
-  id: number;
+  id: string;
+  wizardId: number;
+  cooldown: number;
   name: string;
   description: string;
   image: string;
   effectType: SpellEffect;
-  effect2: (state: UserState, castPosition: Position) => void;
+  effect2: (
+    state: UserState,
+    publicState: PublicState,
+    castPosition: Position,
+    additionalData: any
+  ) => void;
 }
 
-export interface MatchPlayerData {
-  playerId: string;
-  health: number;
-  wizardId: number;
-  spells?: Spell[];
-  mapStructure?: MapStructure;
-  playerPosition?: Position;
+export class Effect {
+  effectId: string;
+  duration: number;
+  effectData: any;
 }
+
+export class EffectInfo {
+  effectId: string;
+  apply: (state: UserState, publicState: PublicState) => void;
+}
+
+export interface MatchPlayerData extends PublicState {}
+// export interface MatchPlayerData {
+//   playerId: string;
+//   health: number;
+//   wizardId: number;
+//   spells?: Spell[];
+//   mapStructure?: MapStructure;
+//   playerPosition?: Position;
+// }
 
 export interface QueueEntry {
   socket: any;
@@ -107,5 +126,5 @@ export interface GameOverResponse {
 export interface SubmittedActionsResponse {
   sessionId: string;
   currentRound: number;
-  actions: ActionPack[];
+  actions: Action[];
 }

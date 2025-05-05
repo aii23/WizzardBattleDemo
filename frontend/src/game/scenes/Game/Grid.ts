@@ -6,7 +6,7 @@ import {
 } from "../../../../../common/types/matchmaking.types";
 import { Game } from "./Game";
 import { allWizards } from "../../../../../common/wizards";
-import { Action, ActionPack } from "@/stater";
+import { Action } from "@/stater";
 
 interface GridTile {
     x: number;
@@ -60,7 +60,7 @@ export class GridManager {
             grid: any[][],
             isPlayerGrid: boolean
         ) => {
-            if (!playerData || !playerData.mapStructure) {
+            if (!playerData || !playerData.map) {
                 console.log("No data for grid creation");
                 return;
             }
@@ -76,7 +76,7 @@ export class GridManager {
                         (this.game.getTileSize() + this.game.getGridSpacing());
 
                     let tile;
-                    const tileType = playerData.mapStructure.matrix[y][x];
+                    const tileType = playerData.map.matrix[y][x];
                     let tileImage;
                     switch (tileType) {
                         case TileType.VALLEY:
@@ -161,10 +161,10 @@ export class GridManager {
         );
 
         // Highlight adjacent tiles initially
-        if (this.game.getPlayerData()?.playerPosition) {
+        if (this.game.getPlayerData()?.position) {
             this.highlightAdjacentTiles(
-                this.game.getPlayerData()!.playerPosition!.x,
-                this.game.getPlayerData()!.playerPosition!.y
+                this.game.getPlayerData()!.position!.x,
+                this.game.getPlayerData()!.position!.y
             );
         }
     }
@@ -205,7 +205,7 @@ export class GridManager {
                     -this.game.getHealthBarWidth() / 2,
                     0,
                     this.game.getHealthBarWidth() *
-                        (playerData.health / wizard?.defaultHealth),
+                        (playerData.health! / wizard?.defaultHealth),
                     this.game.getHealthBarHeight(),
                     0x00ff00
                 )
@@ -244,11 +244,11 @@ export class GridManager {
         data: MatchPlayerData | null,
         container: Phaser.GameObjects.Container
     ) {
-        if (!data || !data.playerPosition) {
+        if (!data || !data.position) {
             console.log("No player position data for mage creation");
             return;
         }
-        const pos = data.playerPosition;
+        const pos = data.position;
         const mageX =
             pos.x * (this.game.getTileSize() + this.game.getGridSpacing()) +
             this.game.getTileSize() / 2;
@@ -287,9 +287,9 @@ export class GridManager {
     }
 
     private isAdjacentToMage(x: number, y: number): boolean {
-        if (!this.game.getPlayerData()?.playerPosition) return false;
-        const mageX = this.game.getPlayerData()!.playerPosition!.x;
-        const mageY = this.game.getPlayerData()!.playerPosition!.y;
+        if (!this.game.getPlayerData()?.position) return false;
+        const mageX = this.game.getPlayerData()!.position!.x;
+        const mageY = this.game.getPlayerData()!.position!.y;
 
         return (
             (Math.abs(x - mageX) === 1 && y === mageY) ||
@@ -331,16 +331,13 @@ export class GridManager {
 
     private triggerMotion(targetX: number, targetY: number) {
         console.log("triggerMotion", targetX, targetY);
-        if (!this.game.getPlayerData()?.playerPosition) return;
+        if (!this.game.getPlayerData()?.position) return;
 
-        const currentX = this.game.getPlayerData()!.playerPosition!.x;
-        const currentY = this.game.getPlayerData()!.playerPosition!.y;
+        const currentX = this.game.getPlayerData()!.position!.x;
+        const currentY = this.game.getPlayerData()!.position!.y;
 
         // Update player position
-        this.game.getPlayerData()!.playerPosition = new Position(
-            targetX,
-            targetY
-        );
+        this.game.getPlayerData()!.position = new Position(targetX, targetY);
 
         // Show waiting text
         this.showWaitingText();
@@ -369,13 +366,13 @@ export class GridManager {
             sessionId: this.game.getMatchMetaData()!.matchId,
             turnData: {
                 playerId: this.game.getPlayerData()!.playerId,
-                actions: new ActionPack([
+                actions: [
                     new Action(
-                        0,
+                        "dash", // TODO: Add spell id
                         new Position(targetX, targetY),
-                        this.game.getPlayerData()!.playerId
+                        this.game.getPlayerData()!.playerId!
                     ),
-                ]),
+                ],
             },
         });
         this.game.state.nextPosition = new Position(targetX, targetY);
@@ -411,7 +408,7 @@ export class GridManager {
         if (playerHealthBar && playerHealthText) {
             playerHealthBar.width =
                 this.game.getHealthBarWidth() *
-                (this.game.getPlayerData()!.health / wizard?.defaultHealth);
+                (this.game.getPlayerData()!.health! / wizard?.defaultHealth);
             playerHealthText.setText(
                 `${this.game.getPlayerData()!.health}/${wizard?.defaultHealth}`
             );
@@ -429,7 +426,7 @@ export class GridManager {
         if (opponentHealthBar && opponentHealthText) {
             opponentHealthBar.width =
                 this.game.getHealthBarWidth() *
-                (this.game.getOpponentData()!.health /
+                (this.game.getOpponentData()!.health! /
                     opponentWizard?.defaultHealth);
             opponentHealthText.setText(
                 `${this.game.getOpponentData()!.health}/${
@@ -441,13 +438,13 @@ export class GridManager {
 
     updateMagePositions() {
         // Update player mage position
-        if (this.game.getPlayerData()?.playerPosition) {
+        if (this.game.getPlayerData()?.position) {
             const playerMageX =
-                this.game.getPlayerData()!.playerPosition!.x *
+                this.game.getPlayerData()!.position!.x *
                     (this.game.getTileSize() + this.game.getGridSpacing()) +
                 this.game.getTileSize() / 2;
             const playerMageY =
-                this.game.getPlayerData()!.playerPosition!.y *
+                this.game.getPlayerData()!.position!.y *
                     (this.game.getTileSize() + this.game.getGridSpacing()) +
                 this.game.getTileSize() / 2;
 
@@ -466,13 +463,13 @@ export class GridManager {
         }
 
         // Update opponent mage position
-        if (this.game.getOpponentData()?.playerPosition) {
+        if (this.game.getOpponentData()?.position) {
             const opponentMageX =
-                this.game.getOpponentData()!.playerPosition!.x *
+                this.game.getOpponentData()!.position!.x *
                     (this.game.getTileSize() + this.game.getGridSpacing()) +
                 this.game.getTileSize() / 2;
             const opponentMageY =
-                this.game.getOpponentData()!.playerPosition!.y *
+                this.game.getOpponentData()!.position!.y *
                     (this.game.getTileSize() + this.game.getGridSpacing()) +
                 this.game.getTileSize() / 2;
 

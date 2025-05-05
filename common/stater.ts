@@ -1,5 +1,11 @@
+import { allEffects } from "./effects";
 import { allSpells } from "./spells";
-import { MapStructure, Position, Spell } from "./types/matchmaking.types";
+import {
+  Effect,
+  MapStructure,
+  Position,
+  Spell,
+} from "./types/matchmaking.types";
 import { allWizards } from "./wizards";
 
 interface ICommittable {
@@ -7,11 +13,11 @@ interface ICommittable {
 }
 
 export class Action implements ICommittable {
-  spellId: number;
+  spellId: string;
   position: Position;
   target: string;
 
-  constructor(spellId: number, position: Position, target: string) {
+  constructor(spellId: string, position: Position, target: string) {
     this.spellId = spellId;
     this.position = position;
     this.target = target;
@@ -23,59 +29,25 @@ export class Action implements ICommittable {
   }
 }
 
-export class ActionPack implements ICommittable {
-  private _actions: Action[] = [];
-
-  constructor(actions: Action[] = []) {
-    this._actions = actions;
-  }
-
-  // Getter for actions array
-  get actions(): Action[] {
-    return this._actions;
-  }
-
-  // Array-like methods
-  get length(): number {
-    return this._actions.length;
-  }
-
-  push(...items: Action[]): number {
-    return this._actions.push(...items);
-  }
-
-  pop(): Action | undefined {
-    return this._actions.pop();
-  }
-
-  [Symbol.iterator](): Iterator<Action> {
-    return this._actions[Symbol.iterator]();
-  }
-
-  // Array access
-  get(index: number): Action {
-    return this._actions[index];
-  }
-
-  // ICommittable implementation
-  getCommit() {
-    // TODO: Implement
-    return "ActionPackCommit";
-  }
-}
-
 export class UserState implements ICommittable {
+  playerId: string;
+  wizardId: number;
   map: MapStructure; // All information about the map
   health: number; // How much health do wizard have
   skillsInfo: Spell[]; // Information about skills and its cooldowns
   position: Position;
+  effects: Effect[];
 
   constructor(
+    playerId: string,
+    wizardId: number,
     map: MapStructure,
     health: number,
     skillsInfo: Spell[],
     position: Position
   ) {
+    this.playerId = playerId;
+    this.wizardId = wizardId;
     this.map = map;
     this.health = health;
     this.skillsInfo = skillsInfo;
@@ -87,6 +59,8 @@ export class UserState implements ICommittable {
     return "UserStateCommit";
   }
 }
+
+export type PublicState = Partial<UserState>;
 
 class StateCommitData implements ICommittable {
   stateHash: string;
@@ -140,34 +114,27 @@ class Signer {
 export class Stater extends Signer {
   private stateHistory: UserState[] = [];
   private gameId: string;
-  private playerId: string;
   private turn: number;
-  private wizardId: number;
 
-  constructor(
-    initialState: UserState,
-    gameId: string,
-    wizardId: number,
-    playerId: string
-  ) {
+  constructor(initialState: UserState, gameId: string) {
     const pk = "SomePrivateKey"; // TODO: Get session private key
     super(pk);
     this.stateHistory = [initialState];
     this.gameId = gameId;
     this.turn = 0;
-    this.wizardId = wizardId;
-    this.playerId = playerId;
   }
 
-  applyActions(actions: ActionPack) {
-    console.log("actions", actions as ActionPack);
+  applyActions(actions: Action[]) {
     // let newState = structuredClone(
     //   this.stateHistory[this.stateHistory.length - 1]
     // );
     // TODO: Make copy of object
+    let publicState = this.getPublicState();
     let newState = this.stateHistory[this.stateHistory.length - 1];
 
     newState = new UserState(
+      newState.playerId,
+      newState.wizardId,
       newState.map,
       newState.health,
       newState.skillsInfo,
@@ -177,19 +144,27 @@ export class Stater extends Signer {
     newState.position = new Position(newState.position.x, newState.position.y);
 
     console.log("actions", actions);
-    for (const action of actions.actions) {
+    for (const action of actions) {
       // Apply action to the state
       const spell = allSpells.find((s) => s.id === action.spellId);
       if (spell) {
         console.log("newState", newState);
-        spell.effect2(newState, action.position);
+        spell.effect2(newState, publicState, action.position, null);
       }
     }
+
+    for (const effect of newState.effects) {
+      const effectInfo = allEffects.find((e) => e.effectId === effect.effectId);
+      if (effectInfo) {
+        effectInfo.apply(newState, publicState);
+      }
+    }
+
     this.stateHistory.push(newState);
 
     return {
       commit: this.getCurrentCommit(actions),
-      publicState: this.getPublicState(),
+      publicState,
     };
   }
 
@@ -201,10 +176,10 @@ export class Stater extends Signer {
     return this.getCurrentState().position;
   }
 
-  getCurrentCommit(lastAppliedActions: ActionPack) {
+  getCurrentCommit(lastAppliedActions: Action[]) {
     const stateCommit =
       this.stateHistory[this.stateHistory.length - 1].getCommit();
-    const actionsCommit = lastAppliedActions.getCommit();
+    const actionsCommit = calculateActionsCommit(lastAppliedActions);
     const commitData = new StateCommitData(
       stateCommit,
       actionsCommit,
@@ -219,19 +194,24 @@ export class Stater extends Signer {
     return this.stateHistory;
   }
 
-  getPublicState() {
-    let wizard = allWizards.find((w) => w.id === this.wizardId);
+  getPublicState(): PublicState {
+    const currentState = this.stateHistory[this.stateHistory.length - 1];
+
+    let wizard = allWizards.find((w) => w.id === currentState.wizardId);
     if (!wizard) {
       throw new Error("Wizard not found");
     }
 
-    const currentState = this.stateHistory[this.stateHistory.length - 1];
     const result = {};
     for (const field of wizard.publicFields) {
       result[field] = currentState[field];
     }
 
-    result["playerId"] = this.playerId;
+    result["playerId"] = currentState.playerId;
     return result;
   }
+}
+function calculateActionsCommit(lastAppliedActions: Action[]): string {
+  // TODO: Implement
+  return lastAppliedActions.map((action) => action.spellId).join(",");
 }
