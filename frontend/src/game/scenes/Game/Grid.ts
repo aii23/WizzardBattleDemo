@@ -454,7 +454,7 @@ export class GridManager {
                     (obj) =>
                         obj instanceof Phaser.GameObjects.Image &&
                         obj.texture.key ===
-                            `wizard_${this.game.getPlayerData()?.wizardId}`
+                            `wizard_${this.game.getPlayerData()?.wizardId!}`
                 ) as Phaser.GameObjects.Image;
 
             if (playerMageSprite) {

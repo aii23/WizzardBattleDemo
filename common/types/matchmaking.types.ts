@@ -41,7 +41,7 @@ export interface Impact {
   spellId: string;
 }
 
-export interface Spell {
+export interface Spell<ADType = any> {
   id: string;
   wizardId: number;
   cooldown: number;
@@ -52,8 +52,9 @@ export interface Spell {
   effect2: (
     state: UserState,
     publicState: PublicState,
+    effects: Effect[],
     castPosition: Position,
-    additionalData: any
+    additionalData: ADType
   ) => void;
 }
 

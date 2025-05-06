@@ -16,11 +16,17 @@ export class Action implements ICommittable {
   spellId: string;
   position: Position;
   target: string;
-
-  constructor(spellId: string, position: Position, target: string) {
+  additionalData: any;
+  constructor(
+    spellId: string,
+    position: Position,
+    target: string,
+    additionalData: any = null
+  ) {
     this.spellId = spellId;
     this.position = position;
     this.target = target;
+    this.additionalData = additionalData;
   }
 
   getCommit() {
@@ -152,7 +158,13 @@ export class Stater extends Signer {
       const spell = allSpells.find((s) => s.id === action.spellId);
       if (spell) {
         console.log("newState", newState);
-        spell.effect2(newState, publicState, action.position, null);
+        spell.effect2(
+          newState,
+          publicState,
+          newState.effects,
+          action.position,
+          action.additionalData
+        );
       }
     }
 

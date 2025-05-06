@@ -1,11 +1,16 @@
 import { allWizards, WizardId } from "./wizards";
 import {
+  Effect,
   MatchPlayerData,
   Position,
   Spell,
   SpellEffect,
 } from "./types/matchmaking.types";
 import { PublicState, Stater, UserState } from "./stater";
+
+interface RockDataType {
+  type: "horizontal" | "vertical" | "diagonal";
+}
 
 export const allSpells: Spell[] = [
   {
@@ -20,6 +25,7 @@ export const allSpells: Spell[] = [
     effect2: (
       state: UserState,
       publicState: PublicState,
+      effects: Effect[],
       castPosition: Position
     ) => {
       const playerPosition = state.position;
@@ -41,6 +47,7 @@ export const allSpells: Spell[] = [
     effect2: (
       state: UserState,
       publicState: PublicState,
+      effects: Effect[],
       castPosition: Position
     ) => {
       const playerPosition = state.position;
@@ -81,6 +88,7 @@ export const allSpells: Spell[] = [
     effect2: (
       state: UserState,
       publicState: PublicState,
+      effects: Effect[],
       castPosition: Position
     ) => {
       state.position = castPosition;
@@ -98,6 +106,7 @@ export const allSpells: Spell[] = [
     effect2: (
       state: UserState,
       publicState: PublicState,
+      effects: Effect[],
       castPosition: Position
     ) => {
       // Todo: Add max health check
@@ -115,6 +124,7 @@ export const allSpells: Spell[] = [
     effect2: (
       state: UserState,
       publicState: PublicState,
+      effects: Effect[],
       castPosition: Position
     ) => {
       const playerPosition = state.position;
@@ -138,8 +148,9 @@ export const allSpells: Spell[] = [
     effect2: (
       state: UserState,
       publicState: PublicState,
+      effects: Effect[],
       castPosition: Position,
-      additionalData: any
+      additionalData: RockDataType
     ) => {
       const type = additionalData.type;
       if (type === "horizontal") {
@@ -170,6 +181,7 @@ export const allSpells: Spell[] = [
     effect2: (
       state: UserState,
       publicState: PublicState,
+      effects: Effect[],
       castPosition: Position
     ) => {
       const playerPosition = state.position;
@@ -209,6 +221,7 @@ export const allSpells: Spell[] = [
     effect2: (
       state: UserState,
       publicState: PublicState,
+      effects: Effect[],
       castPosition: Position
     ) => {
       state.health += 30;
@@ -225,6 +238,7 @@ export const allSpells: Spell[] = [
     effect2: (
       state: UserState,
       publicState: PublicState,
+      effects: Effect[],
       castPosition: Position
     ) => {
       state.position = castPosition;
