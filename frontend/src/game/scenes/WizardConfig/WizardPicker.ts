@@ -1,6 +1,7 @@
 import { GameObjects, Scene } from "phaser";
 import { UserState } from "../../state/UserState";
 import { allWizards } from "../../../../../common/wizards";
+import { SpellPicker } from "./SpellPicker";
 
 const state = UserState.getInstance();
 
@@ -32,7 +33,7 @@ export class WizardOption extends GameObjects.Container {
         this.add(this.borderRect);
 
         // Create wizard image
-        this.wizardImage = scene.add.image(0, 0, `wizard_${wizardId}`);
+        this.wizardImage = scene.add.image(0, 0, `wizard_${wizardId + 1}`);
         this.wizardImage.setOrigin(0, 0);
         this.wizardImage.setDisplaySize(100, 100);
         this.add(this.wizardImage);
@@ -78,15 +79,15 @@ export class WizardOption extends GameObjects.Container {
 
 export class WizardPicker extends GameObjects.Container {
     private options: WizardOption[];
-
-    constructor(scene: Scene, x: number, y: number) {
+    private spellPicker: SpellPicker;
+    constructor(scene: Scene, x: number, y: number, spellPicker: SpellPicker) {
         super(scene, x, y);
         scene.add.existing(this);
         this.options = [];
-
+        this.spellPicker = spellPicker;
         // Create multiple wizard options
         const spacing = 160; // Space between options
-        const wizardIds = [1, 2]; // Example wizard IDs
+        const wizardIds = [0, 1]; // Example wizard IDs
 
         wizardIds.forEach((wizardId, index) => {
             const option = new WizardOption(
@@ -114,9 +115,12 @@ export class WizardPicker extends GameObjects.Container {
         }
 
         // Select new option
+        console.log("In handle wizard selection ", wizardId);
         UserState.getInstance().wizard = allWizards.find(
             (w) => w.id === wizardId
         )!;
+        console.log("User state ", UserState.getInstance().wizard);
+        this.spellPicker.updateSpellsInfo();
     }
 }
 

@@ -25,8 +25,6 @@ export class Configuration extends GameObjects.Container {
             }
         );
         this.add(wizardLabel);
-        const wizardPicker = new WizardPicker(this.scene, 0, 20);
-        this.add(wizardPicker);
 
         // Map picker
         let mapLabel = new Phaser.GameObjects.Text(this.scene, 360, 0, "Map", {
@@ -59,6 +57,9 @@ export class Configuration extends GameObjects.Container {
         this.add(spellsLabel);
         const spellPicker = new SpellPicker(this.scene, 500, 50, 60);
         this.add(spellPicker);
+
+        const wizardPicker = new WizardPicker(this.scene, 0, 20, spellPicker);
+        this.add(wizardPicker);
     }
 }
 

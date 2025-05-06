@@ -64,6 +64,8 @@ export class SpellTile extends Phaser.GameObjects.Image {
 export class SpellPicker extends Phaser.GameObjects.Container {
     tiles: SpellTile[];
     selectionCountText: Phaser.GameObjects.Text;
+    spacing: number;
+    tilesPerRow: number;
 
     constructor(
         scene: Scene,
@@ -75,15 +77,27 @@ export class SpellPicker extends Phaser.GameObjects.Container {
         super(scene, x, y);
         scene.add.existing(this);
         this.tiles = [];
-        this.createGrid(allSpells, spacing, tilesPerRow);
+        this.spacing = spacing;
+        this.tilesPerRow = tilesPerRow;
+        const wizardSpells = allSpells.filter(
+            (spell) => spell.wizardId === userState.wizard.id
+        );
+        this.createGrid(wizardSpells, spacing, tilesPerRow);
 
         this.selectionCountText = scene.add.text(
             0,
-            Math.ceil(allSpells.length / tilesPerRow) * spacing + 10,
+            Math.ceil(wizardSpells.length / tilesPerRow) * spacing + 10,
             `${userState.userSpells.length}/${maxSelectable}`,
             { fontFamily: "Arial", fontSize: "20px", color: "#ffffff" }
         );
         this.add(this.selectionCountText);
+    }
+
+    updateSpellsInfo() {
+        const wizardSpells = allSpells.filter(
+            (spell) => spell.wizardId === userState.wizard.id
+        );
+        this.updateGrid(wizardSpells, this.spacing, this.tilesPerRow);
     }
 
     onPick(newState: boolean, spell: Spell): boolean {
@@ -122,6 +136,11 @@ export class SpellPicker extends Phaser.GameObjects.Container {
             this.tiles.push(tile);
             this.add(tile);
         });
+    }
+
+    updateGrid(spells: Spell[], spacing: number, tilesPerRow: number) {
+        this.removeAll();
+        this.createGrid(spells, spacing, tilesPerRow);
     }
 }
 

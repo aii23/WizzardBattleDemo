@@ -124,6 +124,7 @@ export class GameSessionService {
         sessionId,
         currentRound: session.currentRound,
         state: this.publicState.get(sessionId).get(session.currentRound),
+        actions: this.actions.get(sessionId)?.get(session.currentRound) || [],
       } satisfies NextRoundResponseV2);
     });
     session.currentRound++;

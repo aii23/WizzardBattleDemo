@@ -48,7 +48,7 @@ export class UserState {
             skillsInfo: this.userSpells,
             map: this.userMap,
             health: this.wizard.defaultHealth,
-            position: this.userPosition,
+            // position: this.userPosition,
         };
     }
 

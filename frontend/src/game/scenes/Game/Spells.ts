@@ -13,7 +13,7 @@ export class SpellManager {
     constructor(private game: Game) {}
 
     createSpellsDisplay() {
-        const spells = this.game.getPlayerData()?.spells || [];
+        const spells = this.game.getPlayerData()?.skillsInfo || [];
         const spellSize = 40;
         const spacing = 10;
         const startX = -(spells.length * (spellSize + spacing)) / 2;
@@ -59,10 +59,10 @@ export class SpellManager {
         this.selectedSpell = spell;
 
         // Highlight the selected spell
-        if (this.game.getPlayerData()?.spells) {
+        if (this.game.getPlayerData()?.skillsInfo) {
             const spellIndex = this.game
                 .getPlayerData()!
-                .spells!.findIndex((s) => s.name === spell.name);
+                .skillsInfo!.findIndex((s) => s.name === spell.name);
             if (
                 spellIndex !== -1 &&
                 this.game.getSpellsContainer().list[spellIndex * 3]
@@ -84,10 +84,12 @@ export class SpellManager {
     }
 
     private clearSpellSelection() {
-        if (this.selectedSpell && this.game.getPlayerData()?.spells) {
+        if (this.selectedSpell && this.game.getPlayerData()?.skillsInfo) {
             const spellIndex = this.game
                 .getPlayerData()!
-                .spells!.findIndex((s) => s.name === this.selectedSpell.name);
+                .skillsInfo!.findIndex(
+                    (s) => s.name === this.selectedSpell.name
+                );
             if (
                 spellIndex !== -1 &&
                 this.game.getSpellsContainer().list[spellIndex * 3]

@@ -5,6 +5,7 @@ import { GridManager } from "./Grid";
 import { SpellManager } from "./Spells";
 import { WebSocketManager } from "./Websocket";
 import {
+    Effect,
     Impact,
     MatchPlayerData,
     Position,
@@ -74,6 +75,7 @@ export class Game extends Scene {
                     this.state.playerData.position!.x,
                     this.state.playerData.position!.y
                 ),
+                effects: [] as Effect[],
             } as UserState,
             this.state.matchMetaData!.matchId
         );
@@ -440,7 +442,10 @@ export class Game extends Scene {
         console.log("Processing submitted actions:", actions);
         this.state.roundActions.push(...actions);
 
-        this.stater.applyActions(actions);
+        const playerActions = actions.filter(
+            (action) => action.target === this.state.playerData?.playerId
+        );
+        this.stater.applyActions(playerActions);
 
         this.socket.emit("updatePublicState", {
             sessionId: this.state.matchMetaData!.matchId,

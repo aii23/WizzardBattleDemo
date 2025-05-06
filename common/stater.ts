@@ -44,7 +44,8 @@ export class UserState implements ICommittable {
     map: MapStructure,
     health: number,
     skillsInfo: Spell[],
-    position: Position
+    position: Position,
+    effects: Effect[]
   ) {
     this.playerId = playerId;
     this.wizardId = wizardId;
@@ -52,6 +53,7 @@ export class UserState implements ICommittable {
     this.health = health;
     this.skillsInfo = skillsInfo;
     this.position = position;
+    this.effects = effects;
   }
 
   getCommit() {
@@ -138,7 +140,8 @@ export class Stater extends Signer {
       newState.map,
       newState.health,
       newState.skillsInfo,
-      newState.position
+      newState.position,
+      newState.effects
     );
 
     newState.position = new Position(newState.position.x, newState.position.y);
@@ -208,6 +211,7 @@ export class Stater extends Signer {
     }
 
     result["playerId"] = currentState.playerId;
+    result["wizardId"] = currentState.wizardId;
     return result;
   }
 }

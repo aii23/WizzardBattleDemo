@@ -100,6 +100,7 @@ export interface NextRoundResponseV2 {
   sessionId: string;
   currentRound: number;
   state: MatchPlayerData[];
+  actions: Action[];
 }
 
 export interface SpellCastInfo {

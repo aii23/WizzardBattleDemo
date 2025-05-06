@@ -60,6 +60,12 @@ export class WebSocketManager {
             this.game.updateOpponentData(opponentData);
         }
 
+        // Reset turn submission flag
+        this.game.setTurnSubmitted(false);
+
+        // Display impacts
+        this.game.displayImpacts(data.actions);
+
         // Update game state
         this.updateGameState();
     }
@@ -83,10 +89,10 @@ export class WebSocketManager {
         // Update mage positions
         this.game.gridManager.updateMagePositions();
         // Update highlights for new player position
-        if (this.game.getPlayerData()?.playerPosition) {
+        if (this.game.getPlayerData()?.position) {
             this.game.gridManager.highlightAdjacentTiles(
-                this.game.getPlayerData()!.playerPosition!.x,
-                this.game.getPlayerData()!.playerPosition!.y
+                this.game.getPlayerData()!.position!.x,
+                this.game.getPlayerData()!.position!.y
             );
         }
     }

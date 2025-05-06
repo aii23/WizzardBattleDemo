@@ -1,4 +1,4 @@
-import { allWizards } from "./wizards";
+import { allWizards, WizardId } from "./wizards";
 import {
   MatchPlayerData,
   Position,
@@ -6,12 +6,6 @@ import {
   SpellEffect,
 } from "./types/matchmaking.types";
 import { PublicState, Stater, UserState } from "./stater";
-
-export enum WizardId {
-  MAGE = 0,
-  WARRIOR = 1,
-  ROGUE = 2,
-}
 
 export const allSpells: Spell[] = [
   {
