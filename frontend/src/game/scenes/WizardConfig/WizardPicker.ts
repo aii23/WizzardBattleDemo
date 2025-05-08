@@ -2,6 +2,7 @@ import { GameObjects, Scene } from "phaser";
 import { UserState } from "../../state/UserState";
 import { allWizards } from "../../../../../common/wizards";
 import { SpellPicker } from "./SpellPicker";
+import { useXPStore } from "@/store/xpStore";
 
 const state = UserState.getInstance();
 
@@ -17,6 +18,7 @@ export class WizardOption extends GameObjects.Container {
         y: number,
         wizardId: number,
         isSelected: boolean,
+        available: boolean,
         onSelect: (wizardId: number) => void
     ) {
         super(scene, x, y);
@@ -36,6 +38,7 @@ export class WizardOption extends GameObjects.Container {
         this.wizardImage = scene.add.image(0, 0, `wizard_${wizardId + 1}`);
         this.wizardImage.setOrigin(0, 0);
         this.wizardImage.setDisplaySize(100, 100);
+        this.wizardImage.setTint(available ? 0x00ff00 : 0xff0000);
         this.add(this.wizardImage);
 
         // Make the container interactive
@@ -57,7 +60,7 @@ export class WizardOption extends GameObjects.Container {
         });
 
         this.on("pointerdown", () => {
-            if (!this.isSelected) {
+            if (!this.isSelected && available) {
                 this.toggleSelection();
                 onSelect(this.wizardId);
             }
@@ -85,17 +88,35 @@ export class WizardPicker extends GameObjects.Container {
         scene.add.existing(this);
         this.options = [];
         this.spellPicker = spellPicker;
+
+        const xpData = useXPStore().xpData;
         // Create multiple wizard options
         const spacing = 160; // Space between options
-        const wizardIds = [0, 1]; // Example wizard IDs
+        let wizardIds = [0, 1]; // Example wizard IDs
+        let wizardIdsExpanded = wizardIds.map((id) => {
+            const wizard = allWizards.find((w) => w.id === id);
+            if (wizard && wizard.requiredLevel) {
+                const curLevel = xpData?.accountLevel || 0;
+                return {
+                    id: id,
+                    available: wizard.requiredLevel <= curLevel,
+                };
+            }
 
-        wizardIds.forEach((wizardId, index) => {
+            return {
+                id: id,
+                available: true,
+            };
+        });
+
+        wizardIdsExpanded.forEach((wizard, index) => {
             const option = new WizardOption(
                 scene,
                 index * spacing,
                 0,
-                wizardId,
-                wizardId === state.wizard.id,
+                wizard.id,
+                wizard.id === state.wizard.id,
+                wizard.available,
                 (selectedId) => this.handleWizardSelection(selectedId)
             );
             this.options.push(option);

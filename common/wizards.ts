@@ -3,6 +3,7 @@ export interface Wizard {
   name: string;
   defaultHealth: number;
   publicFields?: string[];
+  requiredLevel?: number;
 }
 
 export enum WizardId {
@@ -23,5 +24,6 @@ export const allWizards: Wizard[] = [
     name: "Warrior",
     defaultHealth: 300,
     publicFields: ["playerPosition", "map", "health"],
+    requiredLevel: 2,
   },
 ];

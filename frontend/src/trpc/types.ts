@@ -1,4 +1,4 @@
-export interface Wizard {
+export interface WizardXPStat {
     wizardId: string;
     wizardLevel: number;
     wizardXP: number;
@@ -8,7 +8,7 @@ export interface XPState {
     address: string;
     accountLevel: number;
     accountXP: number;
-    wizards: Wizard[];
+    wizards: WizardXPStat[];
 }
 
 export interface XPResponse {
@@ -28,11 +28,8 @@ export interface LevelUpResponse {
 
 export interface AddXPInput {
     address: string;
-    accountXP: number;
-    wizardXP: {
-        wizardId: string;
-        amount: number;
-    }[];
+    xp: number;
+    wizardId: string;
 }
 
 export interface GetXPInput {

@@ -1,7 +1,9 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, use } from "react";
 import { IRefPhaserGame, PhaserGame } from "./game/PhaserGame";
 import { MainMenu } from "./game/scenes/MainMenu";
 import { TRPCProvider } from "./providers/TRPCProvider";
+import { trpc } from "./utils/trpc";
+import { useXPStore } from "./store/xpStore";
 
 declare global {
     interface Window {
@@ -16,6 +18,15 @@ function App() {
     //  References to the PhaserGame component (game and scene are exposed)
     const phaserRef = useRef<IRefPhaserGame | null>(null);
 
+    const [address, setAddress] = useState<string | null>(null);
+
+    const xpStore = useXPStore();
+
+    const { data: xpData } = trpc.xp.get.useQuery(
+        { address: address! },
+        { enabled: !!address }
+    );
+
     // Event emitted from the PhaserGame component
     const currentScene = (scene: Phaser.Scene) => {
         setCanMoveSprite(scene.scene.key !== "MainMenu");
@@ -26,12 +37,19 @@ function App() {
             if (typeof window.mina !== "undefined") {
                 console.log("Auro Wallet is installed!");
                 const accounts = await window.mina.requestAccounts();
+                setAddress(accounts[0]);
                 console.log(accounts);
             } else {
                 console.log("Auro Wallet is not installed!");
             }
         })();
     }, []);
+
+    useEffect(() => {
+        if (xpData) {
+            xpStore.setXPData(xpData);
+        }
+    }, [xpData]);
 
     const someFunction = async () => {
         console.log("someFunction");

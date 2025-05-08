@@ -24,7 +24,6 @@ export const publicProcedure = t.procedure;
 
 const ADD_XP_SCHEMA = z.object({
     address: z.string(),
-    account: z.string(),
     xp: z.number(),
     wizardId: z.string(),
 });
@@ -56,7 +55,7 @@ export const xpRouter = router({
     addXp: publicProcedure
         .input(ADD_XP_SCHEMA)
         .mutation(async ({ input }): Promise<XPState> => {
-            const { address, account, xp, wizardId } = input;
+            const { address, xp, wizardId } = input;
 
             let xpDoc = await XPModel.findOne({ address });
 
