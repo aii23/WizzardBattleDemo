@@ -56,6 +56,7 @@ export interface Spell<ADType = any> {
     castPosition: Position,
     additionalData: ADType
   ) => void;
+  cast: (position: Position, target: string, additionalData: ADType) => Action;
 }
 
 export class Effect {

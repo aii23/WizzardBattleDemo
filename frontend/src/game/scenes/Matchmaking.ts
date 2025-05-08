@@ -83,6 +83,7 @@ export class Matchmaking extends Scene {
 
         this.socket.on("waitingForOpponent", () => {
             console.log("Waiting for opponent...");
+            (this as any).someFunction();
         });
 
         this.socket.on("matchFound", (data: MatchFoundResponse) => {

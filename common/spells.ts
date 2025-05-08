@@ -6,7 +6,7 @@ import {
   Spell,
   SpellEffect,
 } from "./types/matchmaking.types";
-import { PublicState, Stater, UserState } from "./stater";
+import { Action, PublicState, Stater, UserState } from "./stater";
 
 interface RockDataType {
   type: "horizontal" | "vertical" | "diagonal";
@@ -32,6 +32,9 @@ export const allSpells: Spell[] = [
       if ((playerPosition as Position).equals(castPosition)) {
         state.health -= 100;
       }
+    },
+    cast: (position: Position, target: string, additionalData: any) => {
+      return new Action("lightning", position, target, additionalData);
     },
   },
   {
@@ -75,6 +78,9 @@ export const allSpells: Spell[] = [
 
       state.health -= damage;
     },
+    cast: (position: Position, target: string, additionalData: any) => {
+      return new Action("fireball", position, target, additionalData);
+    },
   },
   {
     id: "teleport",
@@ -92,6 +98,9 @@ export const allSpells: Spell[] = [
       castPosition: Position
     ) => {
       state.position = castPosition;
+    },
+    cast: (position: Position, target: string, additionalData: any) => {
+      return new Action("teleport", position, target, additionalData);
     },
   },
   {
@@ -111,6 +120,9 @@ export const allSpells: Spell[] = [
     ) => {
       // Todo: Add max health check
       state.health += 30;
+    },
+    cast: (position: Position, target: string, additionalData: any) => {
+      return new Action("heal", position, target, additionalData);
     },
   },
   {
@@ -134,6 +146,9 @@ export const allSpells: Spell[] = [
       ) {
         state.health -= 35;
       }
+    },
+    cast: (position: Position, target: string, additionalData: any) => {
+      return new Action("laser", position, target, additionalData);
     },
   },
 
@@ -168,6 +183,13 @@ export const allSpells: Spell[] = [
           state.health -= 35;
         }
       }
+    },
+    cast: (
+      position: Position,
+      target: string,
+      additionalData: RockDataType
+    ) => {
+      return new Action("rock-throw", position, target, additionalData);
     },
   },
   {
@@ -209,6 +231,9 @@ export const allSpells: Spell[] = [
 
       state.health -= damage;
     },
+    cast: (position: Position, target: string, additionalData: any) => {
+      return new Action("spin", position, target, additionalData);
+    },
   },
   {
     id: "food",
@@ -226,6 +251,9 @@ export const allSpells: Spell[] = [
     ) => {
       state.health += 30;
     },
+    cast: (position: Position, target: string, additionalData: any) => {
+      return new Action("food", position, target, additionalData);
+    },
   },
   {
     id: "dash",
@@ -242,6 +270,9 @@ export const allSpells: Spell[] = [
       castPosition: Position
     ) => {
       state.position = castPosition;
+    },
+    cast: (position: Position, target: string, additionalData: any) => {
+      return new Action("dash", position, target, additionalData);
     },
   },
 ];
