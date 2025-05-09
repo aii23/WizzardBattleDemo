@@ -43,7 +43,8 @@ export interface Impact {
 
 export interface Spell<ADType = any> {
   id: string;
-  wizardId: number;
+  wizardId: string;
+  requiredLevel?: number;
   cooldown: number;
   name: string;
   description: string;

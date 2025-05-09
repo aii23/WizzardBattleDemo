@@ -1,5 +1,5 @@
 export interface Wizard {
-  id: number;
+  id: string;
   name: string;
   defaultHealth: number;
   publicFields?: string[];
@@ -7,9 +7,9 @@ export interface Wizard {
 }
 
 export enum WizardId {
-  MAGE = 0,
-  WARRIOR = 1,
-  ROGUE = 2,
+  MAGE = "Mage",
+  WARRIOR = "Warrior",
+  ROGUE = "Rogue",
 }
 
 export const allWizards: Wizard[] = [

@@ -37,7 +37,7 @@ export class Action implements ICommittable {
 
 export class UserState implements ICommittable {
   playerId: string;
-  wizardId: number;
+  wizardId: string;
   map: MapStructure; // All information about the map
   health: number; // How much health do wizard have
   skillsInfo: Spell[]; // Information about skills and its cooldowns
@@ -46,7 +46,7 @@ export class UserState implements ICommittable {
 
   constructor(
     playerId: string,
-    wizardId: number,
+    wizardId: string,
     map: MapStructure,
     health: number,
     skillsInfo: Spell[],

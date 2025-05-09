@@ -9,17 +9,17 @@ const state = UserState.getInstance();
 export class WizardOption extends GameObjects.Container {
     private wizardImage: GameObjects.Image;
     private borderRect: GameObjects.Rectangle;
-    wizardId: number;
+    wizardId: string;
     isSelected: boolean;
 
     constructor(
         scene: Scene,
         x: number,
         y: number,
-        wizardId: number,
+        wizardId: string,
         isSelected: boolean,
         available: boolean,
-        onSelect: (wizardId: number) => void
+        onSelect: (wizardId: string) => void
     ) {
         super(scene, x, y);
         scene.add.existing(this);
@@ -92,7 +92,7 @@ export class WizardPicker extends GameObjects.Container {
         const xpData = useXPStore().xpData;
         // Create multiple wizard options
         const spacing = 160; // Space between options
-        let wizardIds = [0, 1]; // Example wizard IDs
+        let wizardIds = ["Mage", "Warrior"]; // Example wizard IDs
         let wizardIdsExpanded = wizardIds.map((id) => {
             const wizard = allWizards.find((w) => w.id === id);
             if (wizard && wizard.requiredLevel) {
@@ -124,7 +124,7 @@ export class WizardPicker extends GameObjects.Container {
         });
     }
 
-    private handleWizardSelection(wizardId: number): void {
+    private handleWizardSelection(wizardId: string): void {
         console.log("In handle wizard selection ", wizardId);
         // Deselect previous option if any
         const previousOption = this.options.find(

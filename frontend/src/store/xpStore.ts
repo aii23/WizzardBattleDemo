@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { XPState } from "../trpc/types";
 
-interface XPStore {
+export interface XPStore {
     xpData: XPState | null;
     setXPData: (data: XPState) => void;
 }

@@ -3,6 +3,8 @@ import { UserState } from "@/game/state/UserState";
 import { Scene } from "phaser";
 import { Spell } from "../../../../../common/types/matchmaking.types";
 import { allSpells } from "../../../../../common/spells";
+import { useXPStore } from "@/store/xpStore";
+import { XPStore } from "@/store/xpStore";
 const userState = UserState.getInstance();
 
 export class SpellTile extends Phaser.GameObjects.Image {
@@ -66,6 +68,7 @@ export class SpellPicker extends Phaser.GameObjects.Container {
     selectionCountText: Phaser.GameObjects.Text;
     spacing: number;
     tilesPerRow: number;
+    xpStore: XPStore;
 
     constructor(
         scene: Scene,
@@ -76,13 +79,25 @@ export class SpellPicker extends Phaser.GameObjects.Container {
     ) {
         super(scene, x, y);
         scene.add.existing(this);
+
+        this.xpStore = useXPStore();
         this.tiles = [];
         this.spacing = spacing;
         this.tilesPerRow = tilesPerRow;
         const wizardSpells = allSpells.filter(
             (spell) => spell.wizardId === userState.wizard.id
         );
-        this.createGrid(wizardSpells, spacing, tilesPerRow);
+        const wizardSpellsAvailable = wizardSpells.map((spell) => {
+            const wizard = this.xpStore.xpData?.wizards.find(
+                (w) => w.wizardId === spell.wizardId
+            );
+            return {
+                ...spell,
+                available:
+                    (wizard?.wizardLevel || 0) >= (spell.requiredLevel || 0),
+            };
+        });
+        this.createGrid(wizardSpellsAvailable, spacing, tilesPerRow);
 
         this.selectionCountText = scene.add.text(
             0,
@@ -97,7 +112,17 @@ export class SpellPicker extends Phaser.GameObjects.Container {
         const wizardSpells = allSpells.filter(
             (spell) => spell.wizardId === userState.wizard.id
         );
-        this.updateGrid(wizardSpells, this.spacing, this.tilesPerRow);
+        const wizardSpellsAvailable = wizardSpells.map((spell) => {
+            const wizard = this.xpStore.xpData?.wizards.find(
+                (w) => w.wizardId === spell.wizardId
+            );
+            return {
+                ...spell,
+                available:
+                    (wizard?.wizardLevel || 0) >= (spell.requiredLevel || 0),
+            };
+        });
+        this.updateGrid(wizardSpellsAvailable, this.spacing, this.tilesPerRow);
     }
 
     onPick(newState: boolean, spell: Spell): boolean {
@@ -120,7 +145,11 @@ export class SpellPicker extends Phaser.GameObjects.Container {
         return true;
     }
 
-    private createGrid(spells: Spell[], spacing: number, tilesPerRow: number) {
+    private createGrid(
+        spells: (Spell & { available: boolean })[],
+        spacing: number,
+        tilesPerRow: number
+    ) {
         spells.forEach((spell, index) => {
             // Calculate positions relative to the container
             const localX = (index % tilesPerRow) * spacing;
@@ -131,14 +160,26 @@ export class SpellPicker extends Phaser.GameObjects.Container {
                 localY,
                 spell,
                 userState.userSpells.some((v) => v.id === spell.id),
-                (newState, spell) => this.onPick(newState, spell)
+                (newState, _spell) => {
+                    if (spell.available) {
+                        return this.onPick(newState, spell);
+                    }
+                    return false;
+                }
             );
+            if (!spell.available) {
+                tile.setTint(0xff0000);
+            }
             this.tiles.push(tile);
             this.add(tile);
         });
     }
 
-    updateGrid(spells: Spell[], spacing: number, tilesPerRow: number) {
+    updateGrid(
+        spells: (Spell & { available: boolean })[],
+        spacing: number,
+        tilesPerRow: number
+    ) {
         this.removeAll();
         this.createGrid(spells, spacing, tilesPerRow);
     }
