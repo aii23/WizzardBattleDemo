@@ -8,6 +8,8 @@ import { useXPStore } from "./store/xpStore";
 declare global {
     interface Window {
         mina?: any;
+        setLevel?: (level: number) => void;
+        setMageLevel?: (wizardId: string, level: number) => void;
     }
 }
 
@@ -44,6 +46,43 @@ function App() {
             }
         })();
     }, []);
+
+    /*
+    export interface WizardXPStat {
+    wizardId: string;
+    wizardLevel: number;
+    wizardXP: number;
+}
+
+export interface XPState {
+    address: string;
+    accountLevel: number;
+    accountXP: number;
+    wizards: WizardXPStat[];
+}
+    */
+
+    useEffect(() => {
+        if (xpData) {
+            window.setLevel = (level: number) => {
+                xpStore.setXPData({
+                    ...xpData,
+                    accountLevel: level,
+                });
+            };
+
+            window.setMageLevel = (wizardId: string, level: number) => {
+                xpStore.setXPData({
+                    ...xpData,
+                    wizards: xpData.wizards.map((wizard) =>
+                        wizard.wizardId === wizardId
+                            ? { ...wizard, wizardLevel: level }
+                            : wizard
+                    ),
+                });
+            };
+        }
+    }, [xpData]);
 
     useEffect(() => {
         if (xpData) {
